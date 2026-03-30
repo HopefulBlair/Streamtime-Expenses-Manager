@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense Logger</title>
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #1d4ed8;
+      --brand-light: #eff6ff;
+      --brand-dark: #1e40af;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --error: #dc2626;
+      --error-light: #fef2f2;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --g50: #f9fafb; --g100: #f3f4f6; --g200: #e5e7eb;
+      --g300: #d1d5db; --g400: #9ca3af; --g500: #6b7280;
+      --g600: #4b5563; --g700: #374151; --g800: #1f2937; --g900: #111827;
+      --r: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px; color: var(--g800);
+      background: var(--g100); min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .hdr {
+      background: white; border-bottom: 1px solid var(--g200);
+      padding: 0 24px; height: 56px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
+    }
+    .hdr-logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+    .hdr-mark {
+      width: 30px; height: 30px; background: var(--brand); border-radius: 7px;
+      display: flex; align-items: center; justify-content: center; color: white; font-size: 15px;
+    }
+    .hdr-right { display: flex; align-items: center; gap: 8px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--r); font-size: 13px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent; transition: all .15s; white-space: nowrap;
+      text-decoration: none; line-height: 1;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary   { background: var(--brand); color: white; border-color: var(--brand); }
+    .btn-primary:hover:not(:disabled) { background: var(--brand-dark); }
+    .btn-secondary { background: white; color: var(--g700); border-color: var(--g300); }
+    .btn-secondary:hover:not(:disabled) { background: var(--g50); border-color: var(--g400); }
+    .btn-ghost { background: transparent; color: var(--g500); border-color: transparent; padding: 8px; }
+    .btn-ghost:hover:not(:disabled) { background: var(--g100); color: var(--g800); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover:not(:disabled) { background: #15803d; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-lg { padding: 12px 24px; font-size: 15px; }
+
+    /* ── LAYOUT ── */
+    .main { max-width: 820px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ── STEP BAR ── */
+    .steps {
+      display: flex; align-items: center; gap: 0;
+      background: white; border-radius: var(--r);
+      padding: 14px 20px; margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .step { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .step:not(:last-child) { margin-right: 0; }
+    .step-connector { flex: 1; height: 1px; background: var(--g200); margin: 0 10px; }
+    .step-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600; flex-shrink: 0;
+      background: var(--g200); color: var(--g500);
+    }
+    .step.active .step-num { background: var(--brand); color: white; }
+    .step.done .step-num   { background: var(--success); color: white; }
+    .step-lbl { font-size: 12px; font-weight: 500; color: var(--g400); white-space: nowrap; }
+    .step.active .step-lbl { color: var(--g800); }
+    .step.done .step-lbl   { color: var(--success); }
+
+    /* ── CARD ── */
+    .card { background: white; border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 0; }
+    .card + .card { margin-top: 16px; }
+    .card-hdr {
+      padding: 14px 20px; border-bottom: 1px solid var(--g100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card-title { font-size: 14px; font-weight: 600; }
+    .card-body { padding: 20px; }
+
+    /* ── FORMS ── */
+    .fg { margin-bottom: 14px; }
+    .fg:last-child { margin-bottom: 0; }
+    .lbl {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--g500); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px;
+    }
+    .req { color: var(--error); margin-left: 2px; }
+    .fc {
+      width: 100%; padding: 8px 11px; border: 1px solid var(--g300);
+      border-radius: var(--r); font-size: 13px; color: var(--g800);
+      background: white; outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .fc:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(29,78,216,.1); }
+    .fc::placeholder { color: var(--g400); }
+    .hint { font-size: 11px; color: var(--g400); margin-top: 4px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    /* Price prefix */
+    .pfx { display: flex; }
+    .pfx-lbl {
+      padding: 8px 10px; background: var(--g100);
+      border: 1px solid var(--g300); border-right: none;
+      border-radius: var(--r) 0 0 var(--r); font-size: 13px;
+      color: var(--g500); font-weight: 500; white-space: nowrap;
+    }
+    .pfx .fc { border-radius: 0 var(--r) var(--r) 0; }
+
+    /* ── JOB LIST ── */
+    .job-search-wrap { position: relative; margin-bottom: 10px; }
+    .job-search-ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--g400); font-size: 14px; }
+    #jobSearch { padding-left: 30px; }
+    .jobs-list { max-height: 340px; overflow-y: auto; border: 1px solid var(--g200); border-radius: var(--r); }
+    .job-item {
+      padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--g100);
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background .1s;
+    }
+    .job-item:last-child { border-bottom: none; }
+    .job-item:hover { background: var(--brand-light); }
+    .job-item.selected { background: var(--brand-light); border-left: 3px solid var(--brand); padding-left: 11px; }
+    .job-name { font-weight: 500; font-size: 13px; }
+    .job-meta { font-size: 11px; color: var(--g500); margin-top: 2px; }
+    .job-badge {
+      font-size: 10px; font-family: monospace; font-weight: 600;
+      color: var(--brand); background: var(--brand-light);
+      padding: 2px 7px; border-radius: 4px; border: 1px solid #bfdbfe; white-space: nowrap;
+    }
+
+    /* ── UPLOAD ZONE ── */
+    .drop-zone {
+      border: 2px dashed var(--g300); border-radius: var(--r);
+      padding: 36px; text-align: center; cursor: pointer;
+      transition: all .15s; position: relative;
+    }
+    .drop-zone:hover, .drop-zone.over { border-color: var(--brand); background: var(--brand-light); }
+    .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .drop-icon { font-size: 34px; margin-bottom: 10px; }
+    .drop-text { font-size: 14px; color: var(--g600); margin-bottom: 3px; }
+    .drop-hint { font-size: 12px; color: var(--g400); }
+
+    .file-prev {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px; background: var(--g50);
+      border: 1px solid var(--g200); border-radius: var(--r);
+    }
+    .file-ico { font-size: 28px; }
+    .file-info { flex: 1; }
+    .file-name { font-weight: 500; font-size: 13px; word-break: break-all; }
+    .file-size { font-size: 12px; color: var(--g500); margin-top: 2px; }
+
+    /* ── ALERTS ── */
+    .alert {
+      padding: 11px 14px; border-radius: var(--r); font-size: 13px;
+      margin-bottom: 14px; display: flex; gap: 9px; align-items: flex-start; line-height: 1.5;
+    }
+    .alert a { color: inherit; }
+    .alert code { background: rgba(0,0,0,.08); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+    .alert-info    { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+    .alert-success { background: var(--success-light); color: #14532d; border: 1px solid #86efac; }
+    .alert-error   { background: var(--error-light); color: #7f1d1d; border: 1px solid #fca5a5; }
+    .alert-warning { background: var(--warning-light); color: #78350f; border: 1px solid #fcd34d; }
+
+    /* ── JOB BANNER ── */
+    .job-banner {
+      background: var(--brand-light); border: 1px solid #bfdbfe;
+      border-radius: var(--r); padding: 11px 14px; margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .job-banner-label { font-size: 10px; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .job-banner-name { font-size: 14px; font-weight: 600; }
+    .job-banner-meta { font-size: 11px; color: var(--g500); margin-top: 2px; }
+
+    /* ── FILENAME BOX ── */
+    .fname-box {
+      padding: 10px 13px; background: var(--g50);
+      border: 1px solid var(--g200); border-radius: var(--r);
+      font-family: monospace; font-size: 12px; color: var(--g700); word-break: break-all;
+    }
+
+    /* ── TOGGLE ROW ── */
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px; background: var(--g50);
+      border: 1px solid var(--g200); border-radius: var(--r);
+    }
+    .toggle-lbl { font-size: 13px; font-weight: 500; }
+    .toggle-sub { font-size: 11px; color: var(--g400); margin-top: 1px; }
+    input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
+
+    /* ── SPINNER ── */
+    .spin {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid currentColor; border-right-color: transparent;
+      border-radius: 50%; animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── MODAL ── */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,.45);
+      z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: white; border-radius: 10px; box-shadow: var(--shadow-lg);
+      width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto;
+    }
+    .modal-hdr {
+      padding: 18px 22px 14px; border-bottom: 1px solid var(--g100);
+      display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white;
+    }
+    .modal-title { font-size: 15px; font-weight: 600; }
+    .modal-body { padding: 20px 22px; }
+    .modal-ftr {
+      padding: 14px 22px 18px; border-top: 1px solid var(--g100);
+      display: flex; justify-content: flex-end; gap: 8px;
+      position: sticky; bottom: 0; background: white;
+    }
+
+    /* ── MISC ── */
+    .divider { height: 1px; background: var(--g100); margin: 18px 0; }
+    .sec-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--g400); margin-bottom: 10px; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+    .badge-ok { background: #dcfce7; color: #15803d; }
+    .badge-warn { background: var(--warning-light); color: var(--warning); }
+    .empty { text-align: center; padding: 36px 20px; color: var(--g500); }
+    .empty-ico { font-size: 30px; margin-bottom: 8px; }
+    .step-ftr { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .hidden { display: none !important; }
+    .success-circle {
+      width: 64px; height: 64px; background: var(--success-light); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;
+    }
+
+    @media (max-width: 580px) {
+      .row2, .row3 { grid-template-columns: 1fr; }
+      .main { padding: 14px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════ HEADER ══ -->
+<header class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-mark">💳</div>
+    Expense Logger
+  </div>
+  <div class="hdr-right">
+    <div id="cfgBadge" class="badge"></div>
+    <button class="btn btn-ghost" onclick="openSettings()" title="Settings">⚙️</button>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════ SETTINGS MODAL ══ -->
+<div id="settingsModal" class="modal-bg">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">⚙️ Settings</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="sec-lbl">Connection</div>
+      <div class="fg">
+        <label class="lbl">Worker URL <span class="req">*</span></label>
+        <input type="url" id="s_workerUrl" class="fc" placeholder="https://expense-logger-proxy.your-subdomain.workers.dev">
+        <div class="hint">Your Cloudflare Worker URL — all API calls are proxied through here. API keys never leave the server.</div>
+      </div>
+      <div id="workerTestResult" style="font-size:12px;margin-top:-6px;margin-bottom:10px;"></div>
+      <button class="btn btn-secondary btn-sm" onclick="testWorker()" type="button">Test connection</button>
+
+      <div class="divider"></div>
+
+      <div class="sec-lbl">Your Details</div>
+      <div class="fg">
+        <label class="lbl">Initials <span class="req">*</span></label>
+        <input type="text" id="s_initials" class="fc" placeholder="e.g. BE" maxlength="4" style="max-width:80px;">
+        <div class="hint">Used in the Google Drive filename — personal to you, not shared</div>
+      </div>
+
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════ MAIN ══ -->
+<main class="main">
+
+  <!-- Step indicators -->
+  <div class="steps">
+    <div class="step" id="si1"><div class="step-num">1</div><div class="step-lbl">Select Job</div></div>
+    <div class="step-connector"></div>
+    <div class="step" id="si2"><div class="step-num">2</div><div class="step-lbl">Upload Receipt</div></div>
+    <div class="step-connector"></div>
+    <div class="step" id="si3"><div class="step-num">3</div><div class="step-lbl">Review & Submit</div></div>
+  </div>
+
+  <!-- ── STEP 1: SELECT JOB ── -->
+  <div id="step1" class="card">
+    <div class="card-hdr">
+      <div class="card-title">Select a Job</div>
+      <button class="btn btn-secondary btn-sm" id="refreshBtn" onclick="loadJobs()">↻ Refresh</button>
+    </div>
+    <div class="card-body">
+
+      <div id="s1_noKey" class="empty hidden">
+        <div class="empty-ico">⚙️</div>
+        <div style="font-weight:500;margin-bottom:4px;">API key required</div>
+        <div style="font-size:12px;color:var(--g400);">Add your Streamtime API key in Settings to load jobs</div>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="openSettings()">Open Settings</button>
+      </div>
+
+      <div id="s1_loading" class="empty hidden">
+        <div class="spin" style="width:22px;height:22px;margin:0 auto 10px;border-width:3px;color:var(--brand);"></div>
+        <div style="font-size:13px;color:var(--g500);">Loading jobs from Streamtime…</div>
+      </div>
+
+      <div id="s1_error" class="alert alert-error hidden"></div>
+
+      <div id="s1_jobs" class="hidden">
+        <div class="job-search-wrap">
+          <span class="job-search-ico">🔍</span>
+          <input type="text" id="jobSearch" class="fc" placeholder="Search by job name, number or client…" oninput="filterJobs()">
+        </div>
+        <div class="jobs-list" id="jobsList"></div>
+      </div>
+
+      <div id="s1_actions" class="step-ftr hidden">
+        <button class="btn btn-primary" onclick="goStep(2)">Continue →</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── STEP 2: UPLOAD ── -->
+  <div id="step2" class="card hidden">
+    <div class="card-hdr">
+      <div class="card-title">Upload Receipt or Invoice</div>
+      <button class="btn btn-secondary btn-sm" onclick="goStep(1)">← Back</button>
+    </div>
+    <div class="card-body">
+
+      <div id="s2_jobBanner" class="job-banner">
+        <div>
+          <div class="job-banner-label">Selected Job</div>
+          <div id="s2_jobName" class="job-banner-name"></div>
+          <div id="s2_jobMeta" class="job-banner-meta"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="goStep(1)">Change</button>
+      </div>
+
+      <div id="s2_dropArea">
+        <div class="drop-zone" id="dropZone">
+          <input type="file" id="fileInput" accept="image/*,application/pdf" onchange="handleFileSelect(this.files[0])">
+          <div class="drop-icon">📎</div>
+          <div class="drop-text"><strong>Drop file here</strong> or click to browse</div>
+          <div class="drop-hint">JPG, PNG, WebP or PDF · Max 20 MB</div>
+        </div>
+      </div>
+
+      <div id="s2_preview" class="hidden">
+        <div class="file-prev">
+          <div class="file-ico" id="s2_fileIco"></div>
+          <div class="file-info">
+            <div class="file-name" id="s2_fileName"></div>
+            <div class="file-size" id="s2_fileSize"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearFile()" title="Remove">✕</button>
+        </div>
+      </div>
+
+      <div id="s2_error" class="alert alert-error hidden" style="margin-top:14px;"></div>
+
+      <div class="step-ftr">
+        <button class="btn btn-primary" id="extractBtn" onclick="extractDetails()" disabled>
+          ✨ Extract with AI
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── STEP 3: REVIEW & SUBMIT ── -->
+  <div id="step3" class="card hidden">
+    <div class="card-hdr">
+      <div class="card-title">Review & Submit</div>
+      <button class="btn btn-secondary btn-sm" onclick="goStep(2)">← Back</button>
+    </div>
+    <div class="card-body">
+
+      <div class="job-banner" style="margin-bottom:16px;">
+        <div>
+          <div class="job-banner-label">Job</div>
+          <div id="s3_jobName" class="job-banner-name"></div>
+        </div>
+      </div>
+
+      <div class="alert alert-info" id="s3_notice">
+        ✨ Details extracted. Review everything carefully before submitting — all fields are editable.
+      </div>
+
+      <div class="row2">
+        <div class="fg">
+          <label class="lbl">Date <span class="req">*</span></label>
+          <input type="date" id="f_date" class="fc" oninput="updateFilename()">
+        </div>
+        <div class="fg">
+          <label class="lbl">Supplier <span class="req">*</span></label>
+          <input type="text" id="f_supplier" class="fc" placeholder="e.g. Officeworks" oninput="updateFilename()">
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="lbl">Item Name / Description <span class="req">*</span></label>
+        <input type="text" id="f_itemName" class="fc" placeholder="Brief description of the expense">
+      </div>
+
+      <div class="fg">
+        <label class="lbl">Reference</label>
+        <input type="text" id="f_reference" class="fc" placeholder="Invoice or receipt number">
+      </div>
+
+      <div class="row3">
+        <div class="fg">
+          <label class="lbl">Cost Ex GST <span class="req">*</span></label>
+          <div class="pfx">
+            <span class="pfx-lbl">$</span>
+            <input type="number" id="f_exGST" class="fc" placeholder="0.00" step="0.01" min="0" oninput="calcGST()">
+          </div>
+        </div>
+        <div class="fg">
+          <label class="lbl">GST (10%)</label>
+          <div class="pfx">
+            <span class="pfx-lbl">$</span>
+            <input type="number" id="f_gst" class="fc" placeholder="0.00" step="0.01" oninput="updateFilename()">
+          </div>
+        </div>
+        <div class="fg">
+          <label class="lbl">Total Inc GST</label>
+          <div class="pfx">
+            <span class="pfx-lbl">$</span>
+            <input type="number" id="f_total" class="fc" placeholder="0.00" step="0.01" oninput="updateFilename()">
+          </div>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="lbl">Markup % <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank if not passing cost through)</span></label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="f_markup" class="fc" placeholder="e.g. 15" style="max-width:110px;" min="0" max="200" step="0.5">
+          <span id="f_sellPreview" style="font-size:12px;color:var(--g500);"></span>
+        </div>
+        <div class="hint">Applied to the cost rate when submitted to Streamtime</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="fg">
+        <label class="lbl">Drive Filename Preview</label>
+        <div class="fname-box" id="filenameBox">—</div>
+        <div class="hint">Format: DD.MM.YY_Supplier_Initials_JobCode_$Amount</div>
+      </div>
+
+      <div class="fg">
+        <div class="toggle-row">
+          <div>
+            <div class="toggle-lbl">Save receipt to Google Drive</div>
+            <div class="toggle-sub">Uploads the file using the filename above</div>
+          </div>
+          <input type="checkbox" id="driveToggle" onchange="onDriveToggle()">
+        </div>
+        <div id="driveAuthRow" class="hidden" style="margin-top:10px;display:flex;align-items:center;gap:10px;">
+          <button class="btn btn-secondary btn-sm" id="driveAuthBtn" onclick="authDrive()">🔑 Connect Google Account</button>
+          <span id="driveAuthStatus" style="font-size:12px;color:var(--g500);"></span>
+        </div>
+      </div>
+
+      <div id="s3_error" class="alert alert-error hidden"></div>
+
+      <div class="step-ftr">
+        <button class="btn btn-success btn-lg" id="submitBtn" onclick="handleSubmit()">
+          ✓ Submit Expense
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── STEP 4: SUCCESS ── -->
+  <div id="step4" class="card hidden">
+    <div class="card-body" style="text-align:center;padding:44px 24px;">
+      <div class="success-circle">✓</div>
+      <h2 style="font-size:18px;font-weight:600;margin-bottom:8px;">Expense Logged!</h2>
+      <p id="successMsg" style="color:var(--g500);font-size:14px;margin-bottom:24px;line-height:1.6;"></p>
+      <div id="successLinks" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"></div>
+      <div style="margin-top:24px;">
+        <button class="btn btn-primary" onclick="reset()">Log Another Expense</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let cfg = {};
+let allJobs = [];
+let jobsById = {};
+let selectedJob = null;
+let uploadedFile = null;
+let uploadedB64 = null;
+let driveToken = null;
+let step = 1;
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadCfg();
+  setupDrop();
+  setStep(1);
+  if (cfg.workerUrl) initFromWorker();
+  else showState('noKey');
+});
+
+// ═══════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════
+function loadCfg() {
+  try { cfg = JSON.parse(localStorage.getItem('elSettings') || '{}'); }
+  catch { cfg = {}; }
+  refreshBadge();
+}
+
+function saveSettings() {
+  cfg = {
+    workerUrl: document.getElementById('s_workerUrl').value.trim().replace(/\/$/, ''),
+    initials:  document.getElementById('s_initials').value.trim().toUpperCase(),
+  };
+  try { localStorage.setItem('elSettings', JSON.stringify(cfg)); } catch {}
+  refreshBadge();
+  closeSettings();
+  if (cfg.workerUrl) initFromWorker();
+  else showState('noKey');
+}
+
+function openSettings() {
+  document.getElementById('s_workerUrl').value = cfg.workerUrl || '';
+  document.getElementById('s_initials').value  = cfg.initials  || '';
+  document.getElementById('workerTestResult').textContent = '';
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+
+function refreshBadge() {
+  const ok = cfg.workerUrl && cfg.initials;
+  const b = document.getElementById('cfgBadge');
+  b.textContent = ok ? '✓ Configured' : '⚠ Setup required';
+  b.className = 'badge ' + (ok ? 'badge-ok' : 'badge-warn');
+}
+
+// Test Worker connection from settings modal
+async function testWorker() {
+  const url = document.getElementById('s_workerUrl').value.trim().replace(/\/$/, '');
+  const el  = document.getElementById('workerTestResult');
+  if (!url) { el.textContent = 'Enter a Worker URL first.'; el.style.color = 'var(--warning)'; return; }
+  el.textContent = 'Testing…'; el.style.color = 'var(--g500)';
+  try {
+    const res = await fetch(`${url}/`);
+    const data = await res.json();
+    if (data.status === 'ok') {
+      el.textContent = '✓ Worker is reachable'; el.style.color = 'var(--success)';
+    } else {
+      el.textContent = `Unexpected response: ${JSON.stringify(data)}`; el.style.color = 'var(--warning)';
+    }
+  } catch (err) {
+    el.textContent = `✗ Could not reach Worker: ${err.message}`; el.style.color = 'var(--error)';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// WORKER CONFIG — fetch Drive folder ID + Google Client ID
+// ═══════════════════════════════════════════════════
+async function initFromWorker() {
+  try {
+    const res = await fetch(`${cfg.workerUrl}/config`);
+    if (res.ok) {
+      const data = await res.json();
+      cfg.gcid     = data.googleClientId || '';
+      cfg.folderId = data.driveFolderId  || '';
+    }
+  } catch {
+    // Non-fatal — Drive features will just be unavailable
+  }
+  loadJobs();
+}
+
+document.getElementById('settingsModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('settingsModal')) closeSettings();
+});
+
+// ═══════════════════════════════════════════════════
+// STREAMTIME — LIST JOBS
+// ═══════════════════════════════════════════════════
+async function loadJobs() {
+  if (!cfg.workerUrl) { showState('noKey'); return; }
+  showState('loading');
+
+  try {
+    const res = await fetch(`${cfg.workerUrl}/jobs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wildcardSearch: '',
+        offset: 0,
+        maxResults: 500,
+        filterGroupCollection: { conditionMatchTypeId: 1, filterGroupCollections: [] }
+      })
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Worker error ${res.status}`);
+    }
+
+    const data = await res.json();
+    allJobs = (data.searchResults || []).map(normaliseJob).filter(j => j.id && j.name);
+    allJobs.forEach(j => { jobsById[j.id] = j; });
+
+    if (!allJobs.length) {
+      throw new Error('No jobs returned. Check your Worker is deployed and STREAMTIME_KEY is set correctly.');
+    }
+
+    showState('jobs');
+    renderJobs(allJobs);
+
+  } catch (err) {
+    showState('error', err.message);
+  }
+}
+
+function normaliseJob(r) {
+  // Search results are generic objects — try common field name variations
+  const id   = r.id   ?? r.jobId   ?? r['Job ID']   ?? r['ID'];
+  const name = r.name ?? r.jobName ?? r['Job Name']  ?? r['Name'];
+  const num  = r.number ?? r.jobNumber ?? r['Job Number'] ?? r['Number'] ?? null;
+  const full = r.fullName ?? r['Full Name'] ?? null;
+  const client = (typeof r.company === 'object' ? r.company?.name : r.company)
+              ?? r.companyName ?? r['Company'] ?? r['Client'] ?? '';
+  const status = (typeof r.jobStatus === 'object' ? r.jobStatus?.name : r.jobStatus)
+              ?? r['Job Status'] ?? r['Status'] ?? '';
+  return { id: String(id), name, num, full, client, status };
+}
+
+function showState(state, msg = '') {
+  ['noKey','loading','error','jobs'].forEach(s => {
+    const el = document.getElementById(`s1_${s}`);
+    if (el) el.classList.add('hidden');
+  });
+  const target = document.getElementById(`s1_${state}`);
+  if (!target) return;
+  if (state === 'error') target.innerHTML = '⚠️ ' + msg;
+  target.classList.remove('hidden');
+}
+
+function renderJobs(jobs) {
+  const list = document.getElementById('jobsList');
+  if (!jobs.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-ico">🔍</div>No matching jobs</div>';
+    return;
+  }
+  list.innerHTML = jobs.map(j => `
+    <div class="job-item ${selectedJob?.id === j.id ? 'selected' : ''}"
+         onclick="pickJob('${esc(j.id)}')" data-jid="${esc(j.id)}">
+      <div>
+        <div class="job-name">${esc(j.full || j.name)}</div>
+        ${j.client ? `<div class="job-meta">${esc(j.client)}</div>` : ''}
+      </div>
+      ${j.num ? `<span class="job-badge">${esc(j.num)}</span>` : ''}
+    </div>`).join('');
+}
+
+function filterJobs() {
+  const q = document.getElementById('jobSearch').value.toLowerCase();
+  renderJobs(allJobs.filter(j =>
+    (j.name||'').toLowerCase().includes(q) ||
+    (j.num||'').toLowerCase().includes(q) ||
+    (j.client||'').toLowerCase().includes(q) ||
+    (j.full||'').toLowerCase().includes(q)
+  ));
+}
+
+function pickJob(id) {
+  selectedJob = jobsById[id];
+  if (!selectedJob) return;
+
+  document.querySelectorAll('.job-item').forEach(el =>
+    el.classList.toggle('selected', el.dataset.jid === id));
+
+  document.getElementById('s1_actions').classList.remove('hidden');
+  syncJobBanners();
+}
+
+function syncJobBanners() {
+  if (!selectedJob) return;
+  const name = selectedJob.full || selectedJob.name || '';
+  const meta = [selectedJob.num, selectedJob.client].filter(Boolean).join(' · ');
+  setText('s2_jobName', name); setText('s2_jobMeta', meta);
+  setText('s3_jobName', name);
+  updateFilename();
+}
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+function goStep(n) {
+  if (n === 2 && !selectedJob) { alert('Please select a job first.'); return; }
+  setStep(n);
+  if (n === 3) updateFilename();
+}
+
+function setStep(n) {
+  step = n;
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById(`step${i}`);
+    if (el) el.classList.toggle('hidden', i !== n);
+  }
+  for (let i = 1; i <= 3; i++) {
+    const el = document.getElementById(`si${i}`);
+    if (!el) continue;
+    el.classList.remove('active','done');
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// FILE HANDLING
+// ═══════════════════════════════════════════════════
+function setupDrop() {
+  const zone = document.getElementById('dropZone');
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('over');
+    const f = e.dataTransfer?.files?.[0];
+    if (f) handleFileSelect(f);
+  });
+}
+
+function handleFileSelect(file) {
+  if (!file) return;
+  document.getElementById('s2_error').classList.add('hidden');
+
+  if (file.size > 20 * 1024 * 1024) {
+    showErr('s2_error', 'File too large. Maximum 20 MB.'); return;
+  }
+  const ok = ['image/jpeg','image/png','image/webp','application/pdf'];
+  if (!ok.includes(file.type)) {
+    showErr('s2_error', 'Unsupported file type. Please use JPG, PNG, WebP, or PDF.'); return;
+  }
+
+  uploadedFile = file;
+  document.getElementById('s2_dropArea').classList.add('hidden');
+  document.getElementById('s2_preview').classList.remove('hidden');
+  document.getElementById('s2_fileIco').textContent = file.type === 'application/pdf' ? '📄' : '🖼️';
+  document.getElementById('s2_fileName').textContent = file.name;
+  document.getElementById('s2_fileSize').textContent = fmtSize(file.size);
+  document.getElementById('extractBtn').disabled = false;
+
+  const reader = new FileReader();
+  reader.onload = e => { uploadedB64 = e.target.result.split(',')[1]; };
+  reader.readAsDataURL(file);
+}
+
+function clearFile() {
+  uploadedFile = null; uploadedB64 = null;
+  document.getElementById('s2_dropArea').classList.remove('hidden');
+  document.getElementById('s2_preview').classList.add('hidden');
+  document.getElementById('extractBtn').disabled = true;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('s2_error').classList.add('hidden');
+}
+
+// ═══════════════════════════════════════════════════
+// EXTRACT — via Worker (Gemini key stays server-side)
+// ═══════════════════════════════════════════════════
+async function extractDetails() {
+  if (!cfg.workerUrl) { showErr('s2_error', 'Worker URL not configured. Open Settings.'); return; }
+  if (!uploadedFile || !uploadedB64) { showErr('s2_error', 'No file uploaded.'); return; }
+
+  const btn = document.getElementById('extractBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> Extracting…';
+  document.getElementById('s2_error').classList.add('hidden');
+
+  try {
+    const res = await fetch(`${cfg.workerUrl}/extract`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mimeType: uploadedFile.type, data: uploadedB64 }),
+    });
+
+    const extracted = await res.json();
+
+    if (!res.ok || extracted.error) {
+      throw new Error(extracted.error || `Worker error ${res.status}`);
+    }
+
+    fillForm(extracted);
+    goStep(3);
+
+  } catch (err) {
+    showErr('s2_error', err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Extract with AI';
+  }
+}
+
+function fillForm(d) {
+  set('f_date',     d.date || today());
+  set('f_supplier', d.supplier || '');
+  set('f_itemName', d.itemName || '');
+  set('f_reference',d.reference || '');
+  set('f_exGST',   num(d.amountExGST));
+  set('f_gst',      num(d.gstAmount));
+  set('f_total',    num(d.totalIncGST));
+  updateFilename();
+}
+
+// ═══════════════════════════════════════════════════
+// FORM HELPERS
+// ═══════════════════════════════════════════════════
+function calcGST() {
+  const ex = parseFloat(document.getElementById('f_exGST').value);
+  if (!isNaN(ex) && ex >= 0) {
+    const gst   = Math.round(ex * 0.10 * 100) / 100;
+    const total = Math.round((ex + gst) * 100) / 100;
+    set('f_gst',   gst.toFixed(2));
+    set('f_total', total.toFixed(2));
+  }
+  updateSellPreview();
+  updateFilename();
+}
+
+function updateSellPreview() {
+  const ex     = parseFloat(document.getElementById('f_exGST').value) || 0;
+  const markup = parseFloat(document.getElementById('f_markup').value);
+  if (!isNaN(markup) && markup > 0 && ex > 0) {
+    const sell = Math.round(ex * (1 + markup / 100) * 100) / 100;
+    document.getElementById('f_sellPreview').textContent = `→ sell rate $${sell.toFixed(2)} ex GST`;
+  } else {
+    document.getElementById('f_sellPreview').textContent = '';
+  }
+}
+
+function updateFilename() {
+  const date     = document.getElementById('f_date')?.value;
+  const supplier = document.getElementById('f_supplier')?.value?.trim();
+  const total    = document.getElementById('f_total')?.value;
+  const jobCode  = selectedJob?.num || selectedJob?.id || '';
+  const initials = cfg.initials || 'XX';
+
+  if (!date || !supplier || !total) { setText('filenameBox', '—'); return; }
+
+  const [y, m, d] = date.split('-');
+  const fdate = `${d}.${m}.${y?.slice(2)}`;
+  const fsup  = supplier.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-');
+  const amt   = parseFloat(total).toFixed(2);
+  const ext   = uploadedFile ? (uploadedFile.type === 'application/pdf' ? '.pdf' : '.' + (uploadedFile.name.split('.').pop() || 'jpg')) : '';
+
+  setText('filenameBox', `${fdate}_${fsup}_${initials}_${jobCode}_$${amt}${ext}`);
+}
+
+function getFilename() {
+  const v = document.getElementById('filenameBox')?.textContent;
+  return (v && v !== '—') ? v : uploadedFile?.name || null;
+}
+
+// ═══════════════════════════════════════════════════
+// GOOGLE DRIVE
+// ═══════════════════════════════════════════════════
+function onDriveToggle() {
+  const on = document.getElementById('driveToggle').checked;
+  document.getElementById('driveAuthRow').classList.toggle('hidden', !on);
+  if (on && !cfg.gcid) {
+    document.getElementById('driveToggle').checked = false;
+    document.getElementById('driveAuthRow').classList.add('hidden');
+    alert('Please add your Google OAuth Client ID in Settings first.');
+    openSettings();
+  }
+}
+
+function authDrive() {
+  if (!cfg.gcid) { alert('Google Client ID not configured.'); openSettings(); return; }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: cfg.gcid,
+    scope: 'https://www.googleapis.com/auth/drive.file',
+    callback: r => {
+      if (r.error) {
+        setText('driveAuthStatus', '✗ Failed: ' + r.error); return;
+      }
+      driveToken = r.access_token;
+      setText('driveAuthStatus', '✓ Connected');
+      const btn = document.getElementById('driveAuthBtn');
+      btn.textContent = '✓ Connected';
+      btn.disabled = true;
+    }
+  });
+  client.requestAccessToken({ prompt: 'select_account' });
+}
+
+async function driveUpload(file, filename) {
+  if (!driveToken) throw new Error('Not authenticated with Google Drive.');
+  const meta = { name: filename, ...(cfg.folderId ? { parents: [cfg.folderId] } : {}) };
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+  form.append('file', file, filename);
+  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${driveToken}` },
+    body: form
+  });
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({}));
+    throw new Error(e.error?.message || `Drive error ${r.status}`);
+  }
+  return r.json();
+}
+
+// ═══════════════════════════════════════════════════
+// SUBMIT
+// ═══════════════════════════════════════════════════
+async function handleSubmit() {
+  const date     = document.getElementById('f_date').value;
+  const supplier = document.getElementById('f_supplier').value.trim();
+  const itemName = document.getElementById('f_itemName').value.trim();
+  const exGST    = parseFloat(document.getElementById('f_exGST').value);
+
+  if (!date || !supplier || !itemName || isNaN(exGST)) {
+    showErr('s3_error', 'Date, Supplier, Description and Cost Ex GST are all required.'); return;
+  }
+  if (document.getElementById('driveToggle').checked && !driveToken) {
+    showErr('s3_error', 'Google Drive is checked but you haven\'t connected your account yet.'); return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Submitting…';
+  document.getElementById('s3_error').classList.add('hidden');
+
+  try {
+    const markupVal = document.getElementById('f_markup').value;
+    const markup    = markupVal ? parseFloat(markupVal) : null;
+    const sellRate  = markup ? Math.round(exGST * (1 + markup / 100) * 100) / 100 : exGST;
+
+    const payload = {
+      loggedExpense: {
+        jobId:    parseInt(selectedJob.id),
+        date,
+        company:  supplier,
+        itemName,
+        costRate: exGST,
+        sellRate,
+        quantity: 1,
+        ...(document.getElementById('f_reference').value.trim()
+            ? { reference: document.getElementById('f_reference').value.trim() } : {}),
+        ...(markup !== null ? { markup } : {}),
+      }
+    };
+
+    const stRes = await fetch(`${cfg.workerUrl}/expenses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!stRes.ok) {
+      const e = await stRes.json().catch(() => ({}));
+      throw new Error(`Streamtime ${stRes.status}: ${e.message || JSON.stringify(e).slice(0, 200)}`);
+    }
+
+    const stData = await stRes.json();
+
+    // Drive upload
+    let driveFile = null;
+    if (document.getElementById('driveToggle').checked && uploadedFile) {
+      driveFile = await driveUpload(uploadedFile, getFilename());
+    }
+
+    // Success
+    const jname = selectedJob.full || selectedJob.name;
+    let msg = `Expense logged to <strong>${esc(jname)}</strong>`;
+    if (driveFile) msg += ` and receipt saved to Google Drive.`;
+    setText('successMsg', '');
+    document.getElementById('successMsg').innerHTML = msg;
+
+    const linksEl = document.getElementById('successLinks');
+    linksEl.innerHTML = '';
+    if (stData?.id) {
+      linksEl.innerHTML += `<a href="https://app.streamtime.net" target="_blank" class="btn btn-secondary">Open Streamtime →</a>`;
+    }
+    if (driveFile?.id) {
+      linksEl.innerHTML += `<a href="https://drive.google.com/file/d/${driveFile.id}/view" target="_blank" class="btn btn-secondary">View in Drive →</a>`;
+    }
+
+    setStep(4);
+
+  } catch (err) {
+    let msg = err.message;
+    if (/fetch|CORS|NetworkError/i.test(msg)) {
+      msg = 'Network error. If Streamtime is blocking CORS, check the README for the Cloudflare Worker proxy option.';
+    }
+    showErr('s3_error', msg);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✓ Submit Expense';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════
+function reset() {
+  selectedJob = null; uploadedFile = null; uploadedB64 = null; driveToken = null;
+
+  ['f_date','f_supplier','f_itemName','f_reference','f_exGST','f_gst','f_total','f_markup']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+  document.getElementById('driveToggle').checked = false;
+  document.getElementById('driveAuthRow').classList.add('hidden');
+  const btn = document.getElementById('driveAuthBtn');
+  btn.textContent = '🔑 Connect Google Account'; btn.disabled = false;
+  setText('driveAuthStatus', '');
+
+  clearFile();
+  document.getElementById('s1_actions').classList.add('hidden');
+  document.querySelectorAll('.job-item').forEach(el => el.classList.remove('selected'));
+  document.getElementById('s3_notice').classList.remove('hidden');
+  document.getElementById('s3_error').classList.add('hidden');
+  setText('filenameBox', '—');
+
+  setStep(1);
+}
+
+// ═══════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+function set(id, v)     { const el = document.getElementById(id); if (el) el.value = v; }
+function num(v)  { return (v != null && !isNaN(v)) ? parseFloat(v).toFixed(2) : ''; }
+function today() { return new Date().toISOString().split('T')[0]; }
+function fmtSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024**2) return (b/1024).toFixed(1) + ' KB';
+  return (b/1024**2).toFixed(1) + ' MB';
+}
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = msg; el.classList.remove('hidden');
+}
+
+// Sell rate preview on markup change
+document.getElementById('f_markup')?.addEventListener('input', updateSellPreview);
+</script>
+</body>
+</html>

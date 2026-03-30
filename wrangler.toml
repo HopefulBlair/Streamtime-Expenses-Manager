@@ -1,0 +1,32 @@
+name            = "expense-logger-proxy"
+main            = "worker.js"
+compatibility_date = "2025-01-01"
+
+# ──────────────────────────────────────────────────────────
+# Secrets — never commit these values here.
+# Set them via GitHub Actions (see deploy.yml) or manually:
+#   wrangler secret put STREAMTIME_KEY
+#   wrangler secret put GEMINI_KEY
+#   wrangler secret put GOOGLE_CLIENT_ID
+#   wrangler secret put DRIVE_FOLDER_ID
+#   wrangler secret put ALLOWED_ORIGIN
+#
+# STREAMTIME_KEY   — Streamtime bearer token
+#                    Settings → Integrations → API → Generate Token
+#
+# GEMINI_KEY       — Google AI Studio API key (free)
+#                    https://aistudio.google.com/app/apikey
+#
+# GOOGLE_CLIENT_ID — OAuth 2.0 Client ID from Google Cloud Console
+#                    APIs & Services → Credentials → Create OAuth 2.0 Client ID
+#                    Type: Web Application
+#                    Authorised JavaScript origins: https://your-org.github.io
+#
+# DRIVE_FOLDER_ID  — Google Drive folder ID for receipt uploads
+#                    Open the folder in Drive → copy ID from URL
+#
+# ALLOWED_ORIGIN   — Your GitHub Pages URL (recommended)
+#                    e.g. https://your-org.github.io
+#                    Prevents other sites using your Worker endpoint.
+#                    Set to * to allow all origins (not recommended for production).
+# ──────────────────────────────────────────────────────────
