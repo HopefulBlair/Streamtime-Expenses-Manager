@@ -1,4 +1,4 @@
-name = "streamtime-expenses-manager"
+name            = "expense-logger-proxy"
 main            = "worker.js"
 compatibility_date = "2025-01-01"
 
