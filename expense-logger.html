@@ -999,6 +999,7 @@ async function handleSubmit() {
         itemPricingMethodId: markup !== null ? 2 : 1,
         loggedExpenseStatusId: 1,
         currencyCode: "AUD",
+        exchangeRate: 1,
         ...(document.getElementById('f_reference').value.trim()
             ? { reference: document.getElementById('f_reference').value.trim() } : {}),
         ...(markup !== null ? { markup } : {}),
