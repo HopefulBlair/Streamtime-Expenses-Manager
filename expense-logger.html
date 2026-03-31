@@ -989,13 +989,14 @@ async function handleSubmit() {
 
     const payload = {
       loggedExpense: {
-        jobId:    parseInt(selectedJob.id),
+        jobId:               parseInt(selectedJob.id),
         date,
-        company:  supplier,
+        company:             supplier,
         itemName,
-        costRate: exGST,
+        costRate:            exGST,
         sellRate,
-        quantity: 1,
+        quantity:            1,
+        itemPricingMethodId: markup !== null ? 2 : 1,
         ...(document.getElementById('f_reference').value.trim()
             ? { reference: document.getElementById('f_reference').value.trim() } : {}),
         ...(markup !== null ? { markup } : {}),
@@ -1096,9 +1097,6 @@ function showErr(id, msg) {
   if (!el) return;
   el.innerHTML = msg; el.classList.remove('hidden');
 }
-
-// Sell rate preview on markup change
-document.getElementById('f_markup')?.addEventListener('input', updateSellPreview);
 </script>
 </body>
 </html>
