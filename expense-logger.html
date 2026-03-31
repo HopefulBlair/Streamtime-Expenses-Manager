@@ -997,6 +997,7 @@ async function handleSubmit() {
         sellRate,
         quantity:            1,
         itemPricingMethodId: markup !== null ? 2 : 1,
+        loggedExpenseStatusId: 1,
         ...(document.getElementById('f_reference').value.trim()
             ? { reference: document.getElementById('f_reference').value.trim() } : {}),
         ...(markup !== null ? { markup } : {}),
