@@ -899,7 +899,7 @@ function updateFilename() {
 
   const [y, m, d] = date.split('-');
   const fdate = `${d}.${m}.${y?.slice(2)}`;
-  const fsup  = supplier.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-');
+  const fsup  = supplier.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '');
   const amt   = parseFloat(total).toFixed(2);
   const ext   = uploadedFile ? (uploadedFile.type === 'application/pdf' ? '.pdf' : '.' + (uploadedFile.name.split('.').pop() || 'jpg')) : '';
 
@@ -997,7 +997,7 @@ async function handleSubmit() {
         sellRate,
         quantity:            1,
         itemPricingMethodId: markup !== null ? 2 : 1,
-        loggedExpenseStatusId: 1,
+        loggedExpenseStatusId: 2,
         currencyCode: "AUD",
         exchangeRate: 1,
         ...(document.getElementById('f_reference').value.trim()
