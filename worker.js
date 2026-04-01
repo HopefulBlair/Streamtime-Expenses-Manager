@@ -143,7 +143,7 @@ export default {
 
       // ── POST /companies/search — fuzzy company lookup ─────────────
       // Body: { "query": "Officeworks" }
-      // Uses search_view=2 (Companies). Returns array of { id, name } matches.
+      // Uses search_view=12 (Companies). Returns array of { id, name } matches.
       if (url.pathname === '/companies/search' && request.method === 'POST') {
         if (!env.STREAMTIME_KEY) return errorResponse('STREAMTIME_KEY not configured', 500, origin);
 
@@ -154,11 +154,11 @@ export default {
           wildcardSearch: query,
           offset: 0,
           maxResults: 10,
-          filterGroupCollection: { conditionMatchTypeId: 1, filterGroupCollections: [] },
+          filterGroupCollection: { conditionMatchTypeId: 1, filterGroupCollections: [], filterGroups: [] },
         });
 
         const res = await fetch(
-          'https://api.streamtime.net/v1/search?search_view=2&include_statistics=false',
+          'https://api.streamtime.net/v1/search?search_view=12&include_statistics=false',
           {
             method: 'POST',
             headers: {
