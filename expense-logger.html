@@ -894,8 +894,6 @@ function buildReviewCard(item) {
           <input type="number" id="r_total_${item.id}" class="fc" value="${total||''}" step="0.01" readonly
             style="background:var(--g50);color:var(--g500);"></div>
         </div>
-      </div>
-      <div class="row3" style="align-items:end;margin-top:12px;">
         <div class="fg" style="margin-bottom:0;">
           <label class="lbl">Markup <span class="req">*</span></label>
           <div class="pfx">
@@ -905,14 +903,10 @@ function buildReviewCard(item) {
             <span class="pfx-lbl" style="border-left:none;border-radius:0 var(--r) var(--r) 0;">%</span>
           </div>
         </div>
-        <div class="fg" style="margin-bottom:0;">
-          <label class="lbl">Total inc. GST + ${markup}% Markup</label>
-          <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" id="r_selltotal_${item.id}" class="fc" value="${sellTotal.toFixed(2)}" step="0.01" readonly
-            style="background:var(--g50);color:var(--g500);font-weight:600;"></div>
-        </div>
-        
-        <div></div>
+      </div>
+      <div class="final-sum" id="r_finalsum_${item.id}">
+        <span class="final-sum-label">Total inc. GST + ${markup}% Markup</span>
+        <span class="final-sum-value">$${sellTotal.toFixed(2)}</span>
       </div>
       <div class="fg" style="margin-top:14px;">
         <label class="lbl">Drive Filename</label>
@@ -1193,7 +1187,7 @@ function afyFolderName(dateStr) {
   const idx = afyMonthIndex(dateStr);
   const label = monthLabel(dateStr);
   if (!idx || !label) return null;
-  return `${idx} ${label}`;
+  return `${idx}. ${label}`;
 }
 
 // Search for or create a Drive folder using AFY index prefix under the root folder
