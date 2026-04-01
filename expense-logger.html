@@ -1216,36 +1216,53 @@ async function getOrCreateMonthFolder(dateStr) {
   driveFolderInflight[folderName] = (async () => {
     const parentId = cfg.folderId || null;
 
-    // ── Search 1: exact name match ──────────────────────────────
-    let q = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
-    if (parentId) q += ` and '${parentId}' in parents`;
+    // Helper: search Drive folders with a given query string
+    async function searchFolders(q) {
+      const res = await fetch(
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,parents)&pageSize=50`,
+        { headers: { Authorization: `Bearer ${driveToken}` } }
+      );
+      if (!res.ok) throw new Error(`Folder search failed ${res.status}`);
+      return (await res.json()).files || [];
+    }
 
-    const searchRes = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`,
-      { headers: { Authorization: `Bearer ${driveToken}` } }
-    );
-    if (!searchRes.ok) throw new Error(`Folder search failed ${searchRes.status}`);
-    const found = (await searchRes.json()).files || [];
-    if (found.length) {
-      driveFolderCache[folderName] = found[0].id;
-      return found[0].id;
+    // ── Search 1a: exact name match inside the target parent ─────
+    if (parentId) {
+      const q1a = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and '${parentId}' in parents and trashed=false`;
+      const found = await searchFolders(q1a);
+      if (found.length) {
+        driveFolderCache[folderName] = found[0].id;
+        return found[0].id;
+      }
+    }
+
+    // ── Search 1b: exact name match anywhere in Drive ────────────
+    // (catches the case where cfg.folderId is wrong/empty but the folder exists)
+    const q1b = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
+    const foundAnywhere = await searchFolders(q1b);
+    // If parentId is set, prefer a folder that lives inside that parent;
+    // otherwise accept the first result.
+    const exactMatch = parentId
+      ? foundAnywhere.find(f => f.parents?.includes(parentId)) || foundAnywhere[0]
+      : foundAnywhere[0];
+    if (exactMatch) {
+      driveFolderCache[folderName] = exactMatch.id;
+      return exactMatch.id;
     }
 
     // ── Search 2: index-prefix fallback (folder renamed but same month) ──
     const idxPrefix = String(afyMonthIndex(dateStr));
-    let q2 = `mimeType='application/vnd.google-apps.folder' and name contains '${idxPrefix}.' and trashed=false`;
+    // Use 'name contains' but filter client-side with startsWith to avoid
+    // false positives like "18. January" matching prefix "8"
+    let q2 = `mimeType='application/vnd.google-apps.folder' and name contains '${idxPrefix}. ' and trashed=false`;
     if (parentId) q2 += ` and '${parentId}' in parents`;
-    const searchRes2 = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q2)}&fields=files(id,name)`,
-      { headers: { Authorization: `Bearer ${driveToken}` } }
+    const found2 = await searchFolders(q2).catch(() => []);
+    const prefixMatch = found2.find(f =>
+      f.name.startsWith(idxPrefix + '. ') || f.name.startsWith(idxPrefix + '.')
     );
-    if (searchRes2.ok) {
-      const found2 = (await searchRes2.json()).files || [];
-      const match = found2.find(f => f.name.startsWith(idxPrefix + '.') || f.name.startsWith(idxPrefix + ' '));
-      if (match) {
-        driveFolderCache[folderName] = match.id;
-        return match.id;
-      }
+    if (prefixMatch) {
+      driveFolderCache[folderName] = prefixMatch.id;
+      return prefixMatch.id;
     }
 
     // ── No existing folder found — create it ──────────────────────
