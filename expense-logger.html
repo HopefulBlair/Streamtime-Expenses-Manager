@@ -1000,6 +1000,7 @@ async function handleSubmit() {
         loggedExpenseStatusId: 2,
         currencyCode: "AUD",
         exchangeRate: 1,
+        description: `Created by ${cfg.initials}`,
         ...(document.getElementById('f_reference').value.trim()
             ? { reference: document.getElementById('f_reference').value.trim() } : {}),
         ...(markup !== null ? { markup } : {}),
