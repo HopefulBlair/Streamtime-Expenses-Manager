@@ -49,18 +49,18 @@
     /* STEP BAR */
     .steps { display: flex; align-items: center; background: white; border-radius: var(--r); padding: 14px 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
     .step { display: flex; align-items: center; gap: 8px; flex: 1; }
-    .step-connector { flex: 1; height: 1px; background: var(--g200); margin: 0 10px; }
+    .step-connector { flex: 1; min-width: 16px; height: 1px; background: var(--g200); margin: 0 10px; }
     .step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; background: var(--g200); color: var(--g500); }
     .step.active .step-num { background: var(--brand); color: white; }
     .step.done .step-num   { background: var(--success); color: white; }
-    .step-lbl { font-size: 12px; font-weight: 500; color: var(--g400); white-space: nowrap; }
+    .step-lbl { font-size: 12px; font-weight: 500; color: var(--g400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .step.active .step-lbl { color: var(--g800); }
     .step.done .step-lbl   { color: var(--success); }
 
     /* CARD */
     .card { background: white; border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
     .card + .card { margin-top: 16px; }
-    .card-hdr { padding: 14px 20px; border-bottom: 1px solid var(--g100); display: flex; align-items: center; justify-content: space-between; }
+    .card-hdr { padding: 12px 20px; border-bottom: 1px solid var(--g100); display: flex; align-items: center; justify-content: space-between; min-height: 48px; gap: 10px; }
     .card-title { font-size: 14px; font-weight: 600; }
     .card-body { padding: 20px; }
 
@@ -76,9 +76,14 @@
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     .row4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
-    .pfx { display: flex; }
-    .pfx-lbl { padding: 8px 10px; background: var(--g100); border: 1px solid var(--g300); border-right: none; border-radius: var(--r) 0 0 var(--r); font-size: 13px; color: var(--g500); font-weight: 500; white-space: nowrap; }
-    .pfx .fc { border-radius: 0 var(--r) var(--r) 0; }
+    .pfx { display: flex; align-items: stretch; }
+    .pfx-lbl { padding: 8px 10px; background: var(--g100); border: 1px solid var(--g300); font-size: 13px; color: var(--g500); font-weight: 500; white-space: nowrap; display: flex; align-items: center; flex-shrink: 0; }
+    .pfx-lbl:first-child { border-right: none; border-radius: var(--r) 0 0 var(--r); }
+    .pfx-lbl:last-child  { border-left: none;  border-radius: 0 var(--r) var(--r) 0; }
+    .pfx .fc { flex: 1; min-width: 0; border-radius: 0; }
+    .pfx .fc:first-child { border-radius: var(--r) 0 0 var(--r); }
+    .pfx .fc:last-child  { border-radius: 0 var(--r) var(--r) 0; }
+    .pfx .fc:only-child  { border-radius: var(--r); }
 
     /* JOB LIST */
     .job-search-wrap { position: relative; margin-bottom: 10px; }
@@ -175,10 +180,10 @@
     .fname-box { padding: 10px 13px; background: var(--g50); border: 1px solid var(--g200); border-radius: var(--r); font-family: monospace; font-size: 12px; color: var(--g700); word-break: break-all; }
 
     /* TOGGLE */
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--g50); border: 1px solid var(--g200); border-radius: var(--r); }
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--g50); border: 1px solid var(--g200); border-radius: var(--r); gap: 16px; }
     .toggle-lbl { font-size: 13px; font-weight: 500; }
-    .toggle-sub { font-size: 11px; color: var(--g400); margin-top: 1px; }
-    input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
+    .toggle-sub { font-size: 11px; color: var(--g400); margin-top: 2px; }
+    input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--brand); cursor: pointer; flex-shrink: 0; }
 
     /* SPINNER */
     .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; }
@@ -207,7 +212,8 @@
     .badge-warn { background: var(--warning-light); color: var(--warning); }
     .empty { text-align: center; padding: 36px 20px; color: var(--g500); }
     .empty-ico { font-size: 30px; margin-bottom: 8px; }
-    .step-ftr { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .step-ftr { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+    @media (max-width: 480px) { .step-ftr { flex-direction: column-reverse; } .step-ftr .btn { width: 100%; justify-content: center; } }
     .hidden { display: none !important; }
     .success-circle { width: 64px; height: 64px; background: var(--success-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px; }
     .bulk-result-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; text-align: left; }
@@ -383,7 +389,8 @@ let driveToken = null;
 let step = 1;
 let queue = [];        // See shape comment below
 let nextQueueId = 1;
-const driveFolderCache = {};  // "April 2026" → folder_id
+const driveFolderCache = {};    // "April 2026" → folder_id  (resolved)
+const driveFolderInflight = {}; // "April 2026" → Promise<folder_id> (in-flight dedup)
 
 // Queue item shape:
 // { id, file, b64, mimeType,
@@ -884,9 +891,9 @@ function buildReviewCard(item) {
           <label class="lbl">GST <span class="req">*</span></label>
           <div class="pfx">
             <input type="number" id="r_gstpct_${item.id}" class="fc" value="${gstPct}"
-              style="border-radius:var(--r) 0 0 var(--r);" min="0" max="100" step="1"
+              min="0" max="100" step="1"
               oninput="updateReviewGstPct(${item.id},this.value)">
-            <span class="pfx-lbl" style="border-left:none;border-radius:0 var(--r) var(--r) 0;">%</span>
+            <span class="pfx-lbl">%</span>
           </div>
         </div>
         <div class="fg" style="margin-bottom:0;">
@@ -899,9 +906,9 @@ function buildReviewCard(item) {
           <label class="lbl">Markup <span class="req">*</span></label>
           <div class="pfx">
             <input type="number" id="r_markup_${item.id}" class="fc" value="${markup}"
-              style="border-radius:var(--r) 0 0 var(--r);" min="0" max="200" step="0.5"
+              min="0" max="200" step="0.5"
               oninput="updateReviewMarkup(${item.id},this.value)">
-            <span class="pfx-lbl" style="border-left:none;border-radius:0 var(--r) var(--r) 0;">%</span>
+            <span class="pfx-lbl">%</span>
           </div>
         </div>
       </div>
@@ -1004,8 +1011,8 @@ function calcReviewGST(id) {
   const gst = Math.round(ex * pct / 100 * 100) / 100;
   const total = Math.round((ex + gst) * 100) / 100;
   item.extracted.gstAmount = gst; item.extracted.totalIncGST = total;
-  const ge = document.getElementById(`r_gst_${id}`); const te = document.getElementById(`r_total_${id}`);
-  if (ge) ge.value = gst.toFixed(2); if (te) te.value = total.toFixed(2);
+  const te = document.getElementById(`r_total_${id}`);
+  if (te) te.value = total.toFixed(2);
   setText(`r_fname_${id}`, getFilenameForItem(item)||'—');
   updateFinalSum(id);
 }
@@ -1191,47 +1198,77 @@ function afyFolderName(dateStr) {
   return `${idx}. ${label}`;
 }
 
-// Search for or create a Drive folder using AFY index prefix under the root folder
+// Search for or create a Drive folder using AFY index prefix under the root folder.
+// Uses an in-flight promise cache so concurrent calls for the same month share one
+// network operation and can never race-create duplicate folders.
 async function getOrCreateMonthFolder(dateStr) {
   const folderName = afyFolderName(dateStr);
   if (!folderName) return null;
 
+  // 1. Already resolved — return immediately
   if (driveFolderCache[folderName]) return driveFolderCache[folderName];
 
-  const parentId = cfg.folderId || null;
+  // 2. Already in-flight — await the same promise instead of launching a second request
+  if (driveFolderInflight[folderName]) return driveFolderInflight[folderName];
 
-  // Search by exact name first
-  let q = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
-  if (parentId) q += ` and '${parentId}' in parents`;
+  // 3. Launch a new search-or-create operation and store the promise so any
+  //    concurrent callers will await it rather than starting their own.
+  driveFolderInflight[folderName] = (async () => {
+    const parentId = cfg.folderId || null;
 
-  const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`,
-    { headers: { Authorization: `Bearer ${driveToken}` } });
-  if (!searchRes.ok) throw new Error(`Folder search failed ${searchRes.status}`);
-  const found = (await searchRes.json()).files || [];
-  if (found.length) { driveFolderCache[folderName] = found[0].id; return found[0].id; }
+    // ── Search 1: exact name match ──────────────────────────────
+    let q = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
+    if (parentId) q += ` and '${parentId}' in parents`;
 
-  // Also try searching by index prefix in case folder was created with a different label
-  const idxPrefix = String(afyMonthIndex(dateStr));
-  let q2 = `mimeType='application/vnd.google-apps.folder' and name contains '${idxPrefix} ' and trashed=false`;
-  if (parentId) q2 += ` and '${parentId}' in parents`;
-  const searchRes2 = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q2)}&fields=files(id,name)`,
-    { headers: { Authorization: `Bearer ${driveToken}` } });
-  if (searchRes2.ok) {
-    const found2 = (await searchRes2.json()).files || [];
-    const match = found2.find(f => f.name.startsWith(idxPrefix + ' '));
-    if (match) { driveFolderCache[folderName] = match.id; return match.id; }
-  }
+    const searchRes = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`,
+      { headers: { Authorization: `Bearer ${driveToken}` } }
+    );
+    if (!searchRes.ok) throw new Error(`Folder search failed ${searchRes.status}`);
+    const found = (await searchRes.json()).files || [];
+    if (found.length) {
+      driveFolderCache[folderName] = found[0].id;
+      return found[0].id;
+    }
 
-  // Create it
-  const meta = { name: folderName, mimeType: 'application/vnd.google-apps.folder', ...(parentId ? { parents: [parentId] } : {}) };
-  const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-    method: 'POST', headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(meta),
+    // ── Search 2: index-prefix fallback (folder renamed but same month) ──
+    const idxPrefix = String(afyMonthIndex(dateStr));
+    let q2 = `mimeType='application/vnd.google-apps.folder' and name contains '${idxPrefix}.' and trashed=false`;
+    if (parentId) q2 += ` and '${parentId}' in parents`;
+    const searchRes2 = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q2)}&fields=files(id,name)`,
+      { headers: { Authorization: `Bearer ${driveToken}` } }
+    );
+    if (searchRes2.ok) {
+      const found2 = (await searchRes2.json()).files || [];
+      const match = found2.find(f => f.name.startsWith(idxPrefix + '.') || f.name.startsWith(idxPrefix + ' '));
+      if (match) {
+        driveFolderCache[folderName] = match.id;
+        return match.id;
+      }
+    }
+
+    // ── No existing folder found — create it ──────────────────────
+    const meta = {
+      name: folderName,
+      mimeType: 'application/vnd.google-apps.folder',
+      ...(parentId ? { parents: [parentId] } : {}),
+    };
+    const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(meta),
+    });
+    if (!createRes.ok) throw new Error(`Folder creation failed ${createRes.status}`);
+    const created = await createRes.json();
+    driveFolderCache[folderName] = created.id;
+    return created.id;
+  })().finally(() => {
+    // Clean up in-flight entry whether the operation succeeded or failed
+    delete driveFolderInflight[folderName];
   });
-  if (!createRes.ok) throw new Error(`Folder creation failed ${createRes.status}`);
-  const created = await createRes.json();
-  driveFolderCache[folderName] = created.id;
-  return created.id;
+
+  return driveFolderInflight[folderName];
 }
 
 async function driveUpload(file, filename, folderId) {
