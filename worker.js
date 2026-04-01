@@ -109,7 +109,7 @@ export default {
       if (url.pathname === '/' && request.method === 'GET') {
         return jsonResponse({
           status: 'ok',
-          endpoints: ['/config', '/jobs', '/expenses', '/extract', '/companies/search', '/companies/create'],
+          endpoints: ['/config', '/jobs', '/expenses', '/extract', '/companies/search', '/companies/all', '/companies/create'],
         }, 200, origin);
       }
 
@@ -147,8 +147,8 @@ export default {
       if (url.pathname === '/companies/search' && request.method === 'POST') {
         if (!env.STREAMTIME_KEY) return errorResponse('STREAMTIME_KEY not configured', 500, origin);
 
-        const { query } = await request.json();
-        if (!query) return errorResponse('query is required', 400, origin);
+        const body = await request.json();
+        const query = body.query ?? '';
 
         const searchBody = JSON.stringify({
           wildcardSearch: query,
@@ -175,13 +175,56 @@ export default {
         }
 
         const data = await res.json();
-        // Normalise to a consistent shape regardless of Streamtime field naming
         const results = (data.searchResults || data.results || []).map(r => ({
           id:   r.id ?? r.companyId ?? r['Company ID'],
           name: r.name ?? r.companyName ?? r['Company Name'] ?? r['Name'],
         })).filter(r => r.id && r.name);
 
         return jsonResponse({ results }, 200, origin);
+      }
+
+      // ── GET /companies/all — load all companies for combobox ──────
+      // Paginates through search_view=12 and returns up to 500 companies.
+      if (url.pathname === '/companies/all' && request.method === 'GET') {
+        if (!env.STREAMTIME_KEY) return errorResponse('STREAMTIME_KEY not configured', 500, origin);
+
+        const pageSize = 200;
+        let offset = 0;
+        let allResults = [];
+
+        while (allResults.length < 500) {
+          const searchBody = JSON.stringify({
+            wildcardSearch: '',
+            offset,
+            maxResults: pageSize,
+            filterGroupCollection: { conditionMatchTypeId: 1, filterGroupCollections: [], filterGroups: [] },
+          });
+
+          const res = await fetch(
+            'https://api.streamtime.net/v1/search?search_view=12&include_statistics=false',
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${env.STREAMTIME_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: searchBody,
+            }
+          );
+
+          if (!res.ok) break;
+          const data = await res.json();
+          const page = (data.searchResults || []).map(r => ({
+            id:   r.id ?? r.companyId,
+            name: r.name ?? r.companyName ?? r['Company Name'],
+          })).filter(r => r.id && r.name);
+
+          allResults = allResults.concat(page);
+          if (page.length < pageSize) break;
+          offset += pageSize;
+        }
+
+        return jsonResponse({ companies: allResults }, 200, origin);
       }
 
       // ── POST /companies/create — create a new company ─────────────

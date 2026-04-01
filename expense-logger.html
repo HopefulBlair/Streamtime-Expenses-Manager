@@ -135,6 +135,28 @@
     .co-similar-item:hover { background: var(--brand-light); border-color: #bfdbfe; }
     .co-similar-name { font-weight: 500; }
 
+    /* SUPPLIER COMBOBOX */
+    .supplier-wrap { position: relative; }
+    .supplier-dropdown {
+      position: absolute; top: calc(100% + 3px); left: 0; right: 0; z-index: 50;
+      background: white; border: 1px solid var(--g300); border-radius: var(--r);
+      box-shadow: var(--shadow-lg); max-height: 200px; overflow-y: auto; display: none;
+    }
+    .supplier-dropdown.open { display: block; }
+    .supplier-opt {
+      padding: 8px 11px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--g100);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .supplier-opt:last-child { border-bottom: none; }
+    .supplier-opt:hover, .supplier-opt.focused { background: var(--brand-light); }
+    .supplier-opt-name { font-weight: 500; }
+    .supplier-opt-new { color: var(--warning); font-style: italic; font-size: 12px; }
+
+    /* FINAL SUM */
+    .final-sum { padding: 10px 13px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--r); display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+    .final-sum-label { font-size: 12px; color: var(--brand-dark); font-weight: 500; }
+    .final-sum-value { font-size: 17px; font-weight: 700; color: var(--brand-dark); }
+
     /* ALERTS */
     .alert { padding: 11px 14px; border-radius: var(--r); font-size: 13px; margin-bottom: 14px; display: flex; gap: 9px; align-items: flex-start; line-height: 1.5; }
     .alert-info    { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
@@ -313,9 +335,6 @@
       <div class="job-banner" style="margin-bottom:16px;">
         <div><div class="job-banner-label">Job</div><div id="s3_jobName" class="job-banner-name"></div></div>
       </div>
-      <div class="alert alert-info" id="s3_notice">
-        ✨ Details extracted. Review all expenses carefully — all fields are editable. Suppliers flagged in amber need attention before submitting.
-      </div>
       <div id="s3_reviewList"></div>
       <div class="divider"></div>
       <div class="fg">
@@ -357,6 +376,7 @@
 // ═══════════════════════════════════════════════════════════════
 let cfg = {};
 let allJobs = [], jobsById = {}, selectedJob = null;
+let allCompanies = []; // { id, name } — loaded for supplier combobox
 let driveToken = null;
 let step = 1;
 let queue = [];        // See shape comment below
@@ -449,8 +469,22 @@ async function loadJobs() {
     allJobs.forEach(j => { jobsById[j.id] = j; });
     if (!allJobs.length) throw new Error('No jobs returned. Check STREAMTIME_KEY is set.');
     showState('jobs'); renderJobs(allJobs);
+    // Load companies in background for the supplier combobox
+    loadAllCompanies();
   } catch (err) { showState('error', err.message); }
 }
+async function loadAllCompanies() {
+  if (!cfg.workerUrl) return;
+  try {
+    const res = await fetch(`${cfg.workerUrl}/companies/all`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.companies?.length) {
+      allCompanies = data.companies; // Replace wholesale — authoritative list
+    }
+  } catch { /* non-fatal — combobox will still work via live search */ }
+}
+
 function normaliseJob(r) {
   return {
     id:     String(r.id ?? r.jobId ?? r['Job ID'] ?? r['ID']),
@@ -580,16 +614,22 @@ function renderQueueList() {
                     submitting:'sb-submitting Submitting…', done:'sb-done Done', error:'sb-error Error' };
     const [sbClass, sbLabel] = (sbMap[item.status]||'sb-pending Pending').split(' ');
 
-    // Company badge (on summary row)
+    // Company badge: only show if there's a problem (not if matched/created)
     let coBadge = '';
     if (item.company) {
-      if (item.company.status==='matched'||item.company.status==='created') {
-        coBadge = `<span class="sbadge sb-ready">✓ ${item.company.status==='created'?'New company':'Company'}</span>`;
-      } else if (item.company.status==='checking') {
+      if (item.company.status==='checking') {
         coBadge = `<span class="sbadge sb-extracting">Checking…</span>`;
       } else if (['similar','notfound','error'].includes(item.company.status)) {
         coBadge = `<span class="sbadge sb-warn">⚠ Company</span>`;
       }
+      // matched/created: no badge — clean
+    }
+
+    // Date flag: only show if past month
+    let dateBadge = '';
+    if (item.extracted?.date) {
+      const isPast = new Date(item.extracted.date) < new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      if (isPast) dateBadge = `<span class="sbadge sb-warn">⚠ Date</span>`;
     }
 
     return `<div class="qrow" id="qrow_${item.id}">
@@ -599,7 +639,7 @@ function renderQueueList() {
         <div class="qrow-detail">${detail}</div>
       </div>
       ${amountStr ? `<div class="qrow-amount">${amountStr}</div>` : ''}
-      <div class="qrow-badges">${coBadge}<span class="sbadge ${sbClass}">${sbLabel}</span></div>
+      <div class="qrow-badges">${dateBadge}${coBadge}<span class="sbadge ${sbClass}">${sbLabel}</span></div>
       ${!processing && item.status!=='done'
         ? `<button class="btn btn-ghost btn-sm" onclick="removeQueueItem(${item.id})" title="Remove">✕</button>` : ''}
     </div>`;
@@ -687,9 +727,10 @@ async function checkCompanyForItem(itemId) {
   const supplierEl = document.getElementById(`r_supplier_${itemId}`);
   if (supplierEl) item.extracted.supplier = supplierEl.value.trim();
   item.company = null;
-  refreshReviewCard(item);
+  const coBlock = document.getElementById(`r_co_${itemId}`);
+  if (coBlock) coBlock.innerHTML = '';
   await checkCompany(item);
-  refreshReviewCard(item);
+  if (coBlock) coBlock.innerHTML = buildCompanyBlock(item);
   renderQueueList();
 }
 
@@ -753,15 +794,34 @@ function buildReviewCard(item) {
   const fn = getFilenameForItem(item);
 
   // Date warning
-  let dateWarn = '';
-  if (d.date) {
-    const exp = new Date(d.date);
-    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    if (exp < monthStart) dateWarn = `<div class="alert alert-warning" style="margin-bottom:12px;">⚠️ Date is before the current month — double-check before submitting.</div>`;
-  }
+  const isOldDate = d.date && new Date(d.date) < new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const dateWarn = isOldDate ? `<div class="alert alert-warning" style="margin-bottom:12px;" id="r_datewarn_${item.id}">⚠️ Date is before the current month — double-check before submitting.</div>` : `<div class="alert alert-warning" style="margin-bottom:12px;display:none;" id="r_datewarn_${item.id}">⚠️ Date is before the current month — double-check before submitting.</div>`;
 
   const statusClass = { ready:'sb-ready', done:'sb-done', error:'sb-error' }[item.status]||'sb-pending';
   const statusLabel = { ready:'Ready', done:'Submitted', error:'Error' }[item.status]||item.status;
+
+  // Defaults
+  const markup = item.markup != null ? item.markup : 15;
+  const gstPct = item.gstPct != null ? item.gstPct : 10;
+  const exGST  = parseFloat(d.amountExGST) || 0;
+  const gstAmt = parseFloat(d.gstAmount) || Math.round(exGST * gstPct / 100 * 100) / 100;
+  const total  = parseFloat(d.totalIncGST) || Math.round((exGST + gstAmt) * 100) / 100;
+  const sellTotal = Math.round(total * (1 + markup / 100) * 100) / 100;
+  const descDefault = d.itemName || '';
+  const noteDefault = d.description || `Submitted by ${cfg.initials || 'XX'}`;
+
+  // Supplier dropdown options (top 8 filtered by current value)
+  const supplierFilter = (d.supplier || '').toLowerCase();
+  const ddOptions = allCompanies
+    .filter(c => !supplierFilter || c.name.toLowerCase().includes(supplierFilter))
+    .slice(0, 8)
+    .map(c => `<div class="supplier-opt" onmousedown="selectSupplier(${item.id},'${esc(c.name).replace(/'/g,"\\'")}',${c.id})" data-id="${c.id}">
+      <span class="supplier-opt-name">${esc(c.name)}</span>
+    </div>`).join('');
+  const showNewOpt = d.supplier && !allCompanies.some(c => c.name.toLowerCase() === d.supplier.toLowerCase());
+  const newOpt = showNewOpt ? `<div class="supplier-opt" onmousedown="createCompanyFromInput(${item.id})">
+    <span class="supplier-opt-new">✚ Create "${esc(d.supplier)}"</span>
+  </div>` : '';
 
   return `<div class="card" style="margin-bottom:14px;" id="review_${item.id}">
     <div class="card-hdr" style="background:var(--g50);">
@@ -777,19 +837,34 @@ function buildReviewCard(item) {
         <div class="fg">
           <label class="lbl">Date <span class="req">*</span></label>
           <input type="date" id="r_date_${item.id}" class="fc" value="${esc(d.date||'')}"
-            onchange="updateReviewField(${item.id},'date',this.value)">
+            onchange="updateReviewField(${item.id},'date',this.value); checkDateWarn(${item.id},this.value)">
         </div>
         <div class="fg">
           <label class="lbl">Supplier <span class="req">*</span></label>
-          <input type="text" id="r_supplier_${item.id}" class="fc" value="${esc(d.supplier||'')}"
-            oninput="updateReviewField(${item.id},'supplier',this.value)">
-          <div class="co-block">${buildCompanyBlock(item)}</div>
+          <div class="supplier-wrap">
+            <input type="text" id="r_supplier_${item.id}" class="fc" value="${esc(d.supplier||'')}" autocomplete="off"
+              oninput="onSupplierInput(${item.id},this.value)"
+              onfocus="openSupplierDd(${item.id})"
+              onblur="closeSupplierDd(${item.id})"
+              onkeydown="supplierKeyNav(event,${item.id})">
+            <div class="supplier-dropdown" id="r_sdd_${item.id}">
+              ${ddOptions}${newOpt}
+            </div>
+          </div>
+          <div class="co-block" id="r_co_${item.id}">${buildCompanyBlock(item)}</div>
         </div>
       </div>
       <div class="fg">
         <label class="lbl">Description <span class="req">*</span></label>
-        <input type="text" id="r_itemName_${item.id}" class="fc" value="${esc(d.itemName||'')}"
+        <input type="text" id="r_itemName_${item.id}" class="fc" value="${esc(descDefault)}"
           oninput="updateReviewField(${item.id},'itemName',this.value)">
+      </div>
+      <div class="fg">
+        <label class="lbl">Notes / Internal Description</label>
+        <input type="text" id="r_desc_${item.id}" class="fc" value="${esc(noteDefault)}"
+          placeholder="Submitted by ${esc(cfg.initials||'XX')}"
+          oninput="updateReviewField(${item.id},'description',this.value)">
+        <div class="hint">Pushed to Streamtime as the expense description</div>
       </div>
       <div class="fg">
         <label class="lbl">Reference</label>
@@ -800,29 +875,41 @@ function buildReviewCard(item) {
         <div class="fg">
           <label class="lbl">Cost Ex GST <span class="req">*</span></label>
           <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" id="r_exGST_${item.id}" class="fc" value="${d.amountExGST||''}" step="0.01" min="0"
+          <input type="number" id="r_exGST_${item.id}" class="fc" value="${exGST||''}" step="0.01" min="0"
             oninput="updateReviewField(${item.id},'amountExGST',parseFloat(this.value)||0);calcReviewGST(${item.id})"></div>
         </div>
         <div class="fg">
-          <label class="lbl">GST (10%)</label>
-          <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" id="r_gst_${item.id}" class="fc" value="${d.gstAmount||''}" step="0.01"
-            oninput="updateReviewField(${item.id},'gstAmount',parseFloat(this.value)||0)"></div>
+          <label class="lbl">GST %</label>
+          <div class="pfx"><span class="pfx-lbl">%</span>
+          <input type="number" id="r_gstpct_${item.id}" class="fc" value="${gstPct}" step="1" min="0" max="100"
+            oninput="updateReviewGstPct(${item.id},this.value)"></div>
         </div>
+        <div class="fg">
+          <label class="lbl">GST Amount</label>
+          <div class="pfx"><span class="pfx-lbl">$</span>
+          <input type="number" id="r_gst_${item.id}" class="fc" value="${gstAmt||''}" step="0.01" readonly
+            style="background:var(--g50);color:var(--g500);"></div>
+        </div>
+      </div>
+      <div class="row2">
         <div class="fg">
           <label class="lbl">Total Inc GST</label>
           <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" id="r_total_${item.id}" class="fc" value="${d.totalIncGST||''}" step="0.01"
-            oninput="updateReviewField(${item.id},'totalIncGST',parseFloat(this.value)||0)"></div>
+          <input type="number" id="r_total_${item.id}" class="fc" value="${total||''}" step="0.01" readonly
+            style="background:var(--g50);color:var(--g500);"></div>
+        </div>
+        <div class="fg">
+          <label class="lbl">Markup %</label>
+          <input type="number" id="r_markup_${item.id}" class="fc" value="${markup}"
+            style="max-width:100%;" min="0" max="200" step="0.5"
+            oninput="updateReviewMarkup(${item.id},this.value)">
         </div>
       </div>
-      <div class="fg">
-        <label class="lbl">Markup % <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to pass cost through)</span></label>
-        <input type="number" id="r_markup_${item.id}" class="fc" value="${item.markup!=null?item.markup:''}"
-          placeholder="e.g. 15" style="max-width:110px;" min="0" max="200" step="0.5"
-          oninput="updateReviewMarkup(${item.id},this.value)">
+      <div class="final-sum" id="r_finalsum_${item.id}">
+        <span class="final-sum-label">Total inc. GST + ${markup}% markup</span>
+        <span class="final-sum-value">$${sellTotal.toFixed(2)}</span>
       </div>
-      <div class="fg">
+      <div class="fg" style="margin-top:14px;">
         <label class="lbl">Drive Filename</label>
         <div class="fname-box" id="r_fname_${item.id}">${esc(fn||'—')}</div>
       </div>
@@ -873,33 +960,119 @@ function buildCompanyBlock(item) {
 }
 
 // ── Review field helpers ──
+function checkDateWarn(id, dateVal) {
+  const el = document.getElementById(`r_datewarn_${id}`);
+  if (!el) return;
+  const isOld = dateVal && new Date(dateVal) < new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  el.style.display = isOld ? '' : 'none';
+}
+
 function updateReviewField(id, field, value) {
   const item = queue.find(i => i.id===id);
   if (!item) return;
   item.extracted[field] = value;
   setText(`r_fname_${id}`, getFilenameForItem(item)||'—');
-  // If supplier was edited, reset company state so user re-verifies
-  if (field==='supplier' && item.company && !['notfound','similar'].includes(item.company.status)) {
+  // If supplier was manually typed (not via combobox select), clear company state
+  if (field==='supplier') {
     item.company = null;
-    // Rebuild just the company block, not the whole card (avoids losing focus)
-    const coBlock = document.querySelector(`#review_${id} .co-block`);
+    const coBlock = document.getElementById(`r_co_${id}`);
     if (coBlock) coBlock.innerHTML = '';
+    // Rebuild dropdown options
+    rebuildSupplierDropdown(id, value);
   }
 }
+
 function updateReviewMarkup(id, value) {
   const item = queue.find(i => i.id===id);
-  if (item) item.markup = value!=='' ? parseFloat(value) : null;
+  if (!item) return;
+  item.markup = value!=='' ? parseFloat(value) : 15;
+  updateFinalSum(id);
 }
+
+function updateReviewGstPct(id, value) {
+  const item = queue.find(i => i.id===id);
+  if (!item) return;
+  item.gstPct = value!=='' ? parseFloat(value) : 10;
+  calcReviewGST(id);
+}
+
 function calcReviewGST(id) {
   const item = queue.find(i => i.id===id);
   if (!item) return;
   const ex = parseFloat(item.extracted.amountExGST)||0;
-  const gst = Math.round(ex*0.10*100)/100;
-  const total = Math.round(ex*1.10*100)/100;
+  const pct = item.gstPct != null ? item.gstPct : 10;
+  const gst = Math.round(ex * pct / 100 * 100) / 100;
+  const total = Math.round((ex + gst) * 100) / 100;
   item.extracted.gstAmount = gst; item.extracted.totalIncGST = total;
   const ge = document.getElementById(`r_gst_${id}`); const te = document.getElementById(`r_total_${id}`);
   if (ge) ge.value = gst.toFixed(2); if (te) te.value = total.toFixed(2);
   setText(`r_fname_${id}`, getFilenameForItem(item)||'—');
+  updateFinalSum(id);
+}
+
+function updateFinalSum(id) {
+  const item = queue.find(i => i.id===id);
+  if (!item) return;
+  const total = parseFloat(item.extracted.totalIncGST)||0;
+  const markup = item.markup != null ? item.markup : 15;
+  const sellTotal = Math.round(total * (1 + markup/100) * 100) / 100;
+  const el = document.getElementById(`r_finalsum_${id}`);
+  if (!el) return;
+  el.querySelector('.final-sum-label').textContent = `Total inc. GST + ${markup}% markup`;
+  el.querySelector('.final-sum-value').textContent = `$${sellTotal.toFixed(2)}`;
+}
+
+// ── Supplier combobox ──
+function openSupplierDd(id) {
+  document.getElementById(`r_sdd_${id}`)?.classList.add('open');
+}
+function closeSupplierDd(id) {
+  // Delay so onmousedown on option fires first
+  setTimeout(() => document.getElementById(`r_sdd_${id}`)?.classList.remove('open'), 150);
+}
+function onSupplierInput(id, value) {
+  updateReviewField(id, 'supplier', value);
+  rebuildSupplierDropdown(id, value);
+  openSupplierDd(id);
+}
+function rebuildSupplierDropdown(id, filter) {
+  const dd = document.getElementById(`r_sdd_${id}`);
+  if (!dd) return;
+  const f = (filter||'').toLowerCase();
+  const matches = allCompanies.filter(c => !f || c.name.toLowerCase().includes(f)).slice(0,8);
+  const showNew = filter && !allCompanies.some(c => c.name.toLowerCase()===f);
+  const opts = matches.map(c => `<div class="supplier-opt" onmousedown="selectSupplier(${id},'${esc(c.name).replace(/'/g,"\\'")}',${c.id})" data-id="${c.id}">
+    <span class="supplier-opt-name">${esc(c.name)}</span>
+  </div>`).join('');
+  const newOpt = showNew ? `<div class="supplier-opt" onmousedown="createCompanyFromInput(${id})">
+    <span class="supplier-opt-new">✚ Create "${esc(filter)}"</span>
+  </div>` : '';
+  dd.innerHTML = opts + newOpt;
+}
+function selectSupplier(id, name, companyId) {
+  const item = queue.find(i => i.id===id);
+  if (!item) return;
+  const input = document.getElementById(`r_supplier_${id}`);
+  if (input) input.value = name;
+  item.extracted.supplier = name;
+  item.company = { status:'matched', matchedId:companyId, matchedName:name, similar:[], chosenId:companyId, chosenName:name, errorMsg:null };
+  const coBlock = document.getElementById(`r_co_${id}`);
+  if (coBlock) coBlock.innerHTML = buildCompanyBlock(item);
+  setText(`r_fname_${id}`, getFilenameForItem(item)||'—');
+  renderQueueList();
+  document.getElementById(`r_sdd_${id}`)?.classList.remove('open');
+}
+async function createCompanyFromInput(id) {
+  const item = queue.find(i => i.id===id);
+  if (!item) return;
+  const name = document.getElementById(`r_supplier_${id}`)?.value?.trim();
+  if (!name) return;
+  item.extracted.supplier = name;
+  await createCompany(id, name);
+}
+function supplierKeyNav(e, id) {
+  // Close on Escape, select on Enter if one clear match
+  if (e.key==='Escape') document.getElementById(`r_sdd_${id}`)?.classList.remove('open');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -922,17 +1095,30 @@ function getFilenameForItem(item) {
 // GOOGLE DRIVE — AUTH + MONTH FOLDERS
 // ═══════════════════════════════════════════════════════════════
 function trySilentDriveAuth() {
-  if (!cfg.gcid||!localStorage.getItem('driveAuthorised')) return;
-  updateDriveUI('connecting','Reconnecting…');
-  const client = google.accounts.oauth2.initTokenClient({
-    client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive.file',
-    callback: r => {
-      if (r.error) { localStorage.removeItem('driveAuthorised'); updateDriveUI('disconnected'); return; }
-      driveToken = r.access_token; localStorage.setItem('driveAuthorised','1');
-      updateDriveUI('connected','✓ Google Drive connected');
+  if (!cfg.gcid || !localStorage.getItem('driveAuthorised')) return;
+  // GIS loads async — poll until available (max 5s)
+  let attempts = 0;
+  const tryAuth = () => {
+    if (typeof google === 'undefined' || !google?.accounts?.oauth2) {
+      if (++attempts < 50) { setTimeout(tryAuth, 100); return; }
+      return; // Give up silently
     }
-  });
-  client.requestAccessToken({ prompt:'' });
+    updateDriveUI('connecting', 'Reconnecting to Google Drive…');
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: r => {
+        if (r.error) { localStorage.removeItem('driveAuthorised'); updateDriveUI('disconnected'); return; }
+        driveToken = r.access_token; localStorage.setItem('driveAuthorised', '1');
+        updateDriveUI('connected', '✓ Google Drive connected');
+        // If Drive toggle is checked, keep status bar visible
+        if (document.getElementById('driveToggle')?.checked) {
+          document.getElementById('driveAuthRow')?.classList.remove('hidden');
+        }
+      }
+    });
+    client.requestAccessToken({ prompt: '' });
+  };
+  setTimeout(tryAuth, 200); // Small delay to let GIS start loading
 }
 function onDriveToggle() {
   const on = document.getElementById('driveToggle').checked;
@@ -1029,9 +1215,12 @@ async function handleBulkSubmit() {
     item.extracted.supplier    = g(`r_supplier_${item.id}`) || item.extracted.supplier;
     item.extracted.itemName    = g(`r_itemName_${item.id}`) || item.extracted.itemName;
     item.extracted.reference   = g(`r_reference_${item.id}`);
+    item.extracted.description = g(`r_desc_${item.id}`) || `Submitted by ${cfg.initials||'XX'}`;
     item.extracted.amountExGST = parseFloat(g(`r_exGST_${item.id}`))||item.extracted.amountExGST;
     const rm = g(`r_markup_${item.id}`);
-    item.markup = rm!=='' ? parseFloat(rm) : null;
+    item.markup = rm!=='' ? parseFloat(rm) : 15;
+    const gp = g(`r_gstpct_${item.id}`);
+    item.gstPct = gp!=='' ? parseFloat(gp) : 10;
   });
 
   // Check for unresolved companies
@@ -1066,8 +1255,10 @@ async function handleBulkSubmit() {
         throw new Error('Date, Supplier, Description and Cost Ex GST are all required.');
 
       const exGST    = parseFloat(d.amountExGST);
-      const markup   = item.markup;
-      const sellRate = markup ? Math.round(exGST*(1+markup/100)*100)/100 : exGST;
+      const markup   = item.markup != null ? item.markup : 15;
+      const total    = parseFloat(d.totalIncGST) || exGST;
+      const sellRate = Math.round(total * (1 + markup / 100) * 100) / 100;
+      const descText = d.description || `Submitted by ${cfg.initials||'XX'}`;
 
       const stRes = await fetch(`${cfg.workerUrl}/expenses`, {
         method:'POST', headers:{'Content-Type':'application/json'},
@@ -1082,7 +1273,7 @@ async function handleBulkSubmit() {
           itemPricingMethodId: markup!==null ? 2 : 1,
           loggedExpenseStatusId: 2,
           currencyCode: 'AUD', exchangeRate: 1,
-          description: `Created by ${cfg.initials}`,
+          description:         descText,
           ...(d.reference ? {reference:d.reference} : {}),
           ...(markup!==null ? {markup} : {}),
         }})
@@ -1154,7 +1345,6 @@ function reset() {
   document.getElementById('driveAuthRow').classList.add('hidden');
   document.getElementById('s1_actions').classList.add('hidden');
   document.querySelectorAll('.job-item').forEach(el=>el.classList.remove('selected'));
-  document.getElementById('s3_notice').classList.remove('hidden');
   document.getElementById('s3_error').classList.add('hidden');
   document.getElementById('queueWrap').classList.add('hidden');
   document.getElementById('queueList').innerHTML='';
