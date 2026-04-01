@@ -75,6 +75,7 @@
     .hint { font-size: 11px; color: var(--g400); margin-top: 4px; }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .row4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
     .pfx { display: flex; }
     .pfx-lbl { padding: 8px 10px; background: var(--g100); border: 1px solid var(--g300); border-right: none; border-radius: var(--r) 0 0 var(--r); font-size: 13px; color: var(--g500); font-weight: 500; white-space: nowrap; }
     .pfx .fc { border-radius: 0 var(--r) var(--r) 0; }
@@ -217,7 +218,7 @@
     .bulk-result-name { font-weight: 500; }
     .bulk-result-detail { font-size: 11px; color: var(--g500); margin-top: 2px; }
 
-    @media (max-width: 580px) { .row2, .row3 { grid-template-columns: 1fr; } .main { padding: 14px 10px; } }
+    @media (max-width: 580px) { .row2, .row3, .row4 { grid-template-columns: 1fr; } .main { padding: 14px 10px; } }
   </style>
 </head>
 <body>
@@ -347,7 +348,7 @@
             <span id="driveStatusText">Not connected</span>
             <button class="btn btn-secondary btn-sm" id="driveAuthBtn" onclick="authDrive()" style="margin-left:auto;">Connect Google Account</button>
           </div>
-          <div class="hint" style="margin-top:5px;">If the Connect button does nothing, allow popups for this site in your browser's address bar, then try again.</div>
+          <div class="hint" style="margin-top:5px;">A Google sign-in popup will appear. If it doesn't, allow popups for this site in your browser's address bar, then try again.</div>
         </div>
       </div>
       <div id="s3_error" class="alert alert-error hidden" style="margin-top:14px;"></div>
@@ -796,7 +797,7 @@ function buildReviewCard(item) {
 
   // Date warning
   const isOldDate = d.date && new Date(d.date) < new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-  const dateWarn = isOldDate ? `<div class="alert alert-warning" style="margin-bottom:12px;" id="r_datewarn_${item.id}">⚠️ Date is before the current month — double-check before submitting.</div>` : `<div class="alert alert-warning" style="margin-bottom:12px;display:none;" id="r_datewarn_${item.id}">⚠️ Date is before the current month — double-check before submitting.</div>`;
+  const dateWarnHtml = `<div class="alert alert-warning" style="margin-top:6px;margin-bottom:0;padding:7px 11px;font-size:12px;${isOldDate?'':'display:none;'}" id="r_datewarn_${item.id}">Date is before the current month.</div>`;
 
   const statusClass = { ready:'sb-ready', done:'sb-done', error:'sb-error' }[item.status]||'sb-pending';
   const statusLabel = { ready:'Ready', done:'Submitted', error:'Error' }[item.status]||item.status;
@@ -833,12 +834,12 @@ function buildReviewCard(item) {
       <span class="sbadge ${statusClass}">${statusLabel}</span>
     </div>
     <div class="card-body">
-      ${dateWarn}
       <div class="row2">
         <div class="fg">
           <label class="lbl">Date <span class="req">*</span></label>
           <input type="date" id="r_date_${item.id}" class="fc" value="${esc(d.date||'')}"
             onchange="updateReviewField(${item.id},'date',this.value); checkDateWarn(${item.id},this.value)">
+          ${dateWarnHtml}
         </div>
         <div class="fg">
           <label class="lbl">Supplier <span class="req">*</span></label>
@@ -872,7 +873,7 @@ function buildReviewCard(item) {
         <input type="text" id="r_reference_${item.id}" class="fc" value="${esc(d.reference||'')}"
           oninput="updateReviewField(${item.id},'reference',this.value)">
       </div>
-      <div class="row3" style="align-items:end;">
+      <div class="row4" style="align-items:end;">
         <div class="fg" style="margin-bottom:0;">
           <label class="lbl">Cost Ex GST <span class="req">*</span></label>
           <div class="pfx"><span class="pfx-lbl">$</span>
@@ -923,11 +924,11 @@ function buildCompanyBlock(item) {
   if (co.status==='checking')
     return `<div class="co-row loading"><span class="spin" style="width:12px;height:12px;border-width:2px;"></span> Checking company in Streamtime…</div>`;
   if (co.status==='matched')
-    return `<div class="co-row ok">✓ Matched: <strong style="margin-left:4px;">${esc(co.matchedName)}</strong></div>`;
+    return `<div class="co-row ok">Matched existing supplier</div>`;
   if (co.status==='created')
-    return `<div class="co-row ok">✓ Created new company: <strong style="margin-left:4px;">${esc(co.matchedName)}</strong></div>`;
+    return `<div class="co-row ok">Created new supplier: <strong style="margin-left:4px;">${esc(co.matchedName)}</strong></div>`;
   if (co.status==='error')
-    return `<div class="co-row warn">⚠ Company check failed: ${esc(co.errorMsg||'unknown error')}</div>`;
+    return `<div class="co-row warn">Company check failed: ${esc(co.errorMsg||'unknown error')}</div>`;
 
   const supplierName = item.extracted?.supplier?.trim()||'';
   const safeSupplier = esc(supplierName).replace(/'/g,"\\'");
