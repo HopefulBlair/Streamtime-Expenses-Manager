@@ -311,7 +311,7 @@
         <input type="file" id="fileInput" accept="image/*,application/pdf" multiple onchange="handleFileSelect(this.files)">
         <div class="drop-icon">📎</div>
         <div class="drop-text"><strong>Drop files here</strong> or click to browse</div>
-        <div class="drop-hint">JPG, PNG, WebP or PDF · Max 20 MB each · Multiple files supported</div>
+        <div class="drop-hint">JPG, PNG, WebP or PDF · Max 10 MB each · Multiple files supported</div>
       </div>
       <div id="s2_error" class="alert alert-error hidden" style="margin-top:14px;"></div>
       <div id="queueWrap" class="hidden" style="margin-top:16px;">
@@ -322,7 +322,7 @@
         <div class="queue-list" id="queueList"></div>
       </div>
       <div class="step-ftr" style="margin-top:16px;">
-        <button class="btn btn-secondary" id="extractAllBtn" onclick="extractAll()" disabled>✨ Extract All with AI</button>
+        <button class="btn btn-secondary" id="extractAllBtn" onclick="extractAll()" disabled>Extract Details</button>
         <button class="btn btn-primary" id="proceedBtn" onclick="goStep(3)" disabled>Review & Submit →</button>
       </div>
     </div>
@@ -345,14 +345,14 @@
         <div id="driveAuthRow" class="hidden">
           <div id="driveStatusBar" class="drive-status-bar">
             <span id="driveStatusText">Not connected</span>
-            <button class="btn btn-secondary btn-sm" id="driveAuthBtn" onclick="authDrive()" style="margin-left:auto;">🔑 Connect Google Account</button>
+            <button class="btn btn-secondary btn-sm" id="driveAuthBtn" onclick="authDrive()" style="margin-left:auto;">Connect Google Account</button>
           </div>
           <div class="hint" style="margin-top:5px;">If the Connect button does nothing, allow popups for this site in your browser's address bar, then try again.</div>
         </div>
       </div>
       <div id="s3_error" class="alert alert-error hidden" style="margin-top:14px;"></div>
       <div class="step-ftr">
-        <button class="btn btn-success btn-lg" id="submitBtn" onclick="handleBulkSubmit()">✓ Submit All Expenses</button>
+        <button class="btn btn-success btn-lg" id="submitBtn" onclick="handleBulkSubmit()">Submit All Expenses</button>
       </div>
     </div>
   </div>
@@ -856,12 +856,12 @@ function buildReviewCard(item) {
         </div>
       </div>
       <div class="fg">
-        <label class="lbl">Description <span class="req">*</span></label>
+        <label class="lbl">Expense Name <span class="req">*</span></label>
         <input type="text" id="r_itemName_${item.id}" class="fc" value="${esc(descDefault)}"
           oninput="updateReviewField(${item.id},'itemName',this.value)">
       </div>
       <div class="fg">
-        <label class="lbl">Notes / Internal Description</label>
+        <label class="lbl">Notes / Description</label>
         <input type="text" id="r_desc_${item.id}" class="fc" value="${esc(noteDefault)}"
           placeholder="Submitted by ${esc(cfg.initials||'XX')}"
           oninput="updateReviewField(${item.id},'description',this.value)">
@@ -882,13 +882,10 @@ function buildReviewCard(item) {
         <div class="fg" style="margin-bottom:0;">
           <label class="lbl">GST <span class="req">*</span></label>
           <div class="pfx">
-            <span class="pfx-lbl">$</span>
-            <input type="number" id="r_gst_${item.id}" class="fc" value="${gstAmt||''}" step="0.01" readonly
-              style="background:var(--g50);color:var(--g500);border-radius:0;">
-            <span class="pfx-lbl" style="border-left:none;border-radius:0;">
-              <input type="number" id="r_gstpct_${item.id}" style="width:42px;border:none;background:transparent;font-size:12px;color:var(--g600);font-weight:600;padding:0;outline:none;text-align:right;" value="${gstPct}" step="1" min="0" max="100"
-                oninput="updateReviewGstPct(${item.id},this.value)">%
-            </span>
+            <input type="number" id="r_gstpct_${item.id}" class="fc" value="${gstPct}"
+              style="border-radius:var(--r) 0 0 var(--r);" min="0" max="100" step="1"
+              oninput="updateReviewGstPct(${item.id},this.value)">
+            <span class="pfx-lbl" style="border-left:none;border-radius:0 var(--r) var(--r) 0;">%</span>
           </div>
         </div>
         <div class="fg" style="margin-bottom:0;">
@@ -900,12 +897,6 @@ function buildReviewCard(item) {
       </div>
       <div class="row3" style="align-items:end;margin-top:12px;">
         <div class="fg" style="margin-bottom:0;">
-          <label class="lbl">Total + Markup <span class="req">*</span></label>
-          <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" id="r_selltotal_${item.id}" class="fc" value="${sellTotal.toFixed(2)}" step="0.01" readonly
-            style="background:var(--g50);color:var(--g500);font-weight:600;"></div>
-        </div>
-        <div class="fg" style="margin-bottom:0;">
           <label class="lbl">Markup <span class="req">*</span></label>
           <div class="pfx">
             <input type="number" id="r_markup_${item.id}" class="fc" value="${markup}"
@@ -914,6 +905,13 @@ function buildReviewCard(item) {
             <span class="pfx-lbl" style="border-left:none;border-radius:0 var(--r) var(--r) 0;">%</span>
           </div>
         </div>
+        <div class="fg" style="margin-bottom:0;">
+          <label class="lbl">Total inc. GST + ${markup}% Markup</label>
+          <div class="pfx"><span class="pfx-lbl">$</span>
+          <input type="number" id="r_selltotal_${item.id}" class="fc" value="${sellTotal.toFixed(2)}" step="0.01" readonly
+            style="background:var(--g50);color:var(--g500);font-weight:600;"></div>
+        </div>
+        
         <div></div>
       </div>
       <div class="fg" style="margin-top:14px;">
