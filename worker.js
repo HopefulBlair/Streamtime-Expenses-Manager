@@ -7,15 +7,17 @@
  *   STREAMTIME_KEY    — Streamtime bearer token
  *   GEMINI_KEY        — Google AI Studio API key
  *   GOOGLE_CLIENT_ID  — Google OAuth Client ID (safe to expose, but convenient here)
- *   DRIVE_FOLDER_ID   — Google Drive folder ID
+ *   DRIVE_FOLDER_ID   — Google Drive folder ID (root receipts folder)
  *   ALLOWED_ORIGIN    — e.g. https://your-org.github.io (optional but recommended)
  *
  * Endpoints:
- *   GET  /          — health check
- *   GET  /config    — returns non-sensitive config to the browser
- *   POST /jobs      — list active Streamtime jobs
- *   POST /expenses  — create a logged expense in Streamtime
- *   POST /extract   — extract receipt details via Gemini
+ *   GET  /                — health check
+ *   GET  /config          — returns non-sensitive config to the browser
+ *   POST /jobs            — list active Streamtime jobs
+ *   POST /expenses        — create a logged expense in Streamtime
+ *   POST /extract         — extract receipt details via Gemini
+ *   POST /companies/search — search Streamtime companies by name (fuzzy)
+ *   POST /companies/create — create a new company in Streamtime
  */
 
 const EXTRACT_PROMPT = `Extract the expense details from this receipt or invoice. Return ONLY a valid JSON object — no markdown, no code fences, no explanation.
@@ -64,6 +66,22 @@ function errorResponse(message, status = 500, origin = '*') {
   return jsonResponse({ error: message }, status, origin);
 }
 
+async function streamtimePassthrough(url, body, env, origin) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.STREAMTIME_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body,
+  });
+  const text = await res.text();
+  return new Response(text, {
+    status: res.status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
+  });
+}
+
 // ─────────────────────────────────────────────
 // Main handler
 // ─────────────────────────────────────────────
@@ -75,13 +93,10 @@ export default {
 
     // CORS preflight
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders(origin),
-      });
+      return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
-    // Optional origin restriction — prevents your Worker being used by other sites
+    // Optional origin restriction
     if (env.ALLOWED_ORIGIN) {
       const allowed = env.ALLOWED_ORIGIN.split(',').map(s => s.trim());
       if (!allowed.includes('*') && !allowed.includes(origin)) {
@@ -94,11 +109,11 @@ export default {
       if (url.pathname === '/' && request.method === 'GET') {
         return jsonResponse({
           status: 'ok',
-          endpoints: ['/config', '/jobs', '/expenses', '/extract'],
+          endpoints: ['/config', '/jobs', '/expenses', '/extract', '/companies/search', '/companies/create'],
         }, 200, origin);
       }
 
-      // ── GET /config — non-sensitive config for the browser ────────
+      // ── GET /config ───────────────────────────────────────────────
       if (url.pathname === '/config' && request.method === 'GET') {
         return jsonResponse({
           googleClientId: env.GOOGLE_CLIENT_ID || '',
@@ -106,61 +121,95 @@ export default {
         }, 200, origin);
       }
 
-      // ── POST /jobs — list Streamtime jobs ─────────────────────────
+      // ── POST /jobs ────────────────────────────────────────────────
       if (url.pathname === '/jobs' && request.method === 'POST') {
         if (!env.STREAMTIME_KEY) return errorResponse('STREAMTIME_KEY not configured', 500, origin);
-
         const body = await request.text();
-        const res = await fetch(
+        return streamtimePassthrough(
           'https://api.streamtime.net/v1/search?search_view=7&include_statistics=false',
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${env.STREAMTIME_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body,
-          }
+          body, env, origin
         );
-
-        const text = await res.text();
-        return new Response(text, {
-          status: res.status,
-          headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders(origin),
-          },
-        });
       }
 
-      // ── POST /expenses — create Streamtime expense ────────────────
+      // ── POST /expenses ────────────────────────────────────────────
       if (url.pathname === '/expenses' && request.method === 'POST') {
         if (!env.STREAMTIME_KEY) return errorResponse('STREAMTIME_KEY not configured', 500, origin);
-
         const body = await request.text();
-        const res = await fetch(
+        return streamtimePassthrough(
           'https://api.streamtime.net/v1/logged_expenses',
+          body, env, origin
+        );
+      }
+
+      // ── POST /companies/search — fuzzy company lookup ─────────────
+      // Body: { "query": "Officeworks" }
+      // Uses search_view=2 (Companies). Returns array of { id, name } matches.
+      if (url.pathname === '/companies/search' && request.method === 'POST') {
+        if (!env.STREAMTIME_KEY) return errorResponse('STREAMTIME_KEY not configured', 500, origin);
+
+        const { query } = await request.json();
+        if (!query) return errorResponse('query is required', 400, origin);
+
+        const searchBody = JSON.stringify({
+          wildcardSearch: query,
+          offset: 0,
+          maxResults: 10,
+          filterGroupCollection: { conditionMatchTypeId: 1, filterGroupCollections: [] },
+        });
+
+        const res = await fetch(
+          'https://api.streamtime.net/v1/search?search_view=2&include_statistics=false',
           {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${env.STREAMTIME_KEY}`,
               'Content-Type': 'application/json',
             },
-            body,
+            body: searchBody,
           }
         );
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          return errorResponse(err.message || `Streamtime ${res.status}`, res.status, origin);
+        }
+
+        const data = await res.json();
+        // Normalise to a consistent shape regardless of Streamtime field naming
+        const results = (data.searchResults || data.results || []).map(r => ({
+          id:   r.id ?? r.companyId ?? r['Company ID'],
+          name: r.name ?? r.companyName ?? r['Company Name'] ?? r['Name'],
+        })).filter(r => r.id && r.name);
+
+        return jsonResponse({ results }, 200, origin);
+      }
+
+      // ── POST /companies/create — create a new company ─────────────
+      // Body: { "name": "New Supplier Pty Ltd" }
+      // Returns the created company object including its id.
+      if (url.pathname === '/companies/create' && request.method === 'POST') {
+        if (!env.STREAMTIME_KEY) return errorResponse('STREAMTIME_KEY not configured', 500, origin);
+
+        const { name } = await request.json();
+        if (!name) return errorResponse('name is required', 400, origin);
+
+        const res = await fetch('https://api.streamtime.net/v1/companies', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${env.STREAMTIME_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name }),
+        });
 
         const text = await res.text();
         return new Response(text, {
           status: res.status,
-          headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders(origin),
-          },
+          headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
         });
       }
 
-      // ── POST /extract — extract receipt details via Gemini ────────
+      // ── POST /extract — Gemini receipt extraction ─────────────────
       if (url.pathname === '/extract' && request.method === 'POST') {
         if (!env.GEMINI_KEY) return errorResponse('GEMINI_KEY not configured', 500, origin);
 
@@ -198,8 +247,6 @@ export default {
 
         const geminiData = await res.json();
         let txt = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-        // Strip any markdown code fences Gemini might add
         txt = txt.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
 
         try {

@@ -7,357 +7,227 @@
   <script src="https://accounts.google.com/gsi/client" async></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --brand: #1d4ed8;
-      --brand-light: #eff6ff;
-      --brand-dark: #1e40af;
-      --success: #16a34a;
-      --success-light: #f0fdf4;
-      --error: #dc2626;
-      --error-light: #fef2f2;
-      --warning: #d97706;
-      --warning-light: #fffbeb;
+      --brand: #1d4ed8; --brand-light: #eff6ff; --brand-dark: #1e40af;
+      --success: #16a34a; --success-light: #f0fdf4;
+      --error: #dc2626; --error-light: #fef2f2;
+      --warning: #d97706; --warning-light: #fffbeb;
       --g50: #f9fafb; --g100: #f3f4f6; --g200: #e5e7eb;
       --g300: #d1d5db; --g400: #9ca3af; --g500: #6b7280;
-      --g600: #4b5563; --g700: #374151; --g800: #1f2937; --g900: #111827;
+      --g600: #4b5563; --g700: #374151; --g800: #1f2937;
       --r: 8px;
       --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
       --shadow-lg: 0 10px 15px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
     }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: var(--g800); background: var(--g100); min-height: 100vh; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px; color: var(--g800);
-      background: var(--g100); min-height: 100vh;
-    }
-
-    /* ── HEADER ── */
-    .hdr {
-      background: white; border-bottom: 1px solid var(--g200);
-      padding: 0 24px; height: 56px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow);
-    }
+    /* HEADER */
+    .hdr { background: white; border-bottom: 1px solid var(--g200); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
     .hdr-logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
-    .hdr-mark {
-      width: 30px; height: 30px; background: var(--brand); border-radius: 7px;
-      display: flex; align-items: center; justify-content: center; color: white; font-size: 15px;
-    }
+    .hdr-mark { width: 30px; height: 30px; background: var(--brand); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: white; font-size: 15px; }
     .hdr-right { display: flex; align-items: center; gap: 8px; }
 
-    /* ── BUTTONS ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 16px; border-radius: var(--r); font-size: 13px; font-weight: 500;
-      cursor: pointer; border: 1px solid transparent; transition: all .15s; white-space: nowrap;
-      text-decoration: none; line-height: 1;
-    }
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--r); font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all .15s; white-space: nowrap; text-decoration: none; line-height: 1; }
     .btn:disabled { opacity: .5; cursor: not-allowed; }
     .btn-primary   { background: var(--brand); color: white; border-color: var(--brand); }
-    .btn-primary:hover:not(:disabled) { background: var(--brand-dark); }
+    .btn-primary:hover:not(:disabled)   { background: var(--brand-dark); }
     .btn-secondary { background: white; color: var(--g700); border-color: var(--g300); }
     .btn-secondary:hover:not(:disabled) { background: var(--g50); border-color: var(--g400); }
     .btn-ghost { background: transparent; color: var(--g500); border-color: transparent; padding: 8px; }
     .btn-ghost:hover:not(:disabled) { background: var(--g100); color: var(--g800); }
     .btn-success { background: var(--success); color: white; }
     .btn-success:hover:not(:disabled) { background: #15803d; }
-    .btn-danger { background: var(--error); color: white; }
-    .btn-danger:hover:not(:disabled) { background: #b91c1c; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn-warning:hover:not(:disabled) { background: #b45309; }
     .btn-sm { padding: 5px 10px; font-size: 12px; }
     .btn-lg { padding: 12px 24px; font-size: 15px; }
 
-    /* ── LAYOUT ── */
+    /* LAYOUT */
     .main { max-width: 820px; margin: 0 auto; padding: 24px 16px; }
 
-    /* ── STEP BAR ── */
-    .steps {
-      display: flex; align-items: center; gap: 0;
-      background: white; border-radius: var(--r);
-      padding: 14px 20px; margin-bottom: 20px;
-      box-shadow: var(--shadow);
-    }
+    /* STEP BAR */
+    .steps { display: flex; align-items: center; background: white; border-radius: var(--r); padding: 14px 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
     .step { display: flex; align-items: center; gap: 8px; flex: 1; }
     .step-connector { flex: 1; height: 1px; background: var(--g200); margin: 0 10px; }
-    .step-num {
-      width: 26px; height: 26px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 600; flex-shrink: 0;
-      background: var(--g200); color: var(--g500);
-    }
+    .step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; background: var(--g200); color: var(--g500); }
     .step.active .step-num { background: var(--brand); color: white; }
     .step.done .step-num   { background: var(--success); color: white; }
     .step-lbl { font-size: 12px; font-weight: 500; color: var(--g400); white-space: nowrap; }
     .step.active .step-lbl { color: var(--g800); }
     .step.done .step-lbl   { color: var(--success); }
 
-    /* ── CARD ── */
-    .card { background: white; border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 0; }
+    /* CARD */
+    .card { background: white; border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden; }
     .card + .card { margin-top: 16px; }
-    .card-hdr {
-      padding: 14px 20px; border-bottom: 1px solid var(--g100);
-      display: flex; align-items: center; justify-content: space-between;
-    }
+    .card-hdr { padding: 14px 20px; border-bottom: 1px solid var(--g100); display: flex; align-items: center; justify-content: space-between; }
     .card-title { font-size: 14px; font-weight: 600; }
     .card-body { padding: 20px; }
 
-    /* ── FORMS ── */
+    /* FORMS */
     .fg { margin-bottom: 14px; }
     .fg:last-child { margin-bottom: 0; }
-    .lbl {
-      display: block; font-size: 11px; font-weight: 600;
-      color: var(--g500); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px;
-    }
+    .lbl { display: block; font-size: 11px; font-weight: 600; color: var(--g500); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 5px; }
     .req { color: var(--error); margin-left: 2px; }
-    .fc {
-      width: 100%; padding: 8px 11px; border: 1px solid var(--g300);
-      border-radius: var(--r); font-size: 13px; color: var(--g800);
-      background: white; outline: none; transition: border-color .15s, box-shadow .15s;
-    }
+    .fc { width: 100%; padding: 8px 11px; border: 1px solid var(--g300); border-radius: var(--r); font-size: 13px; color: var(--g800); background: white; outline: none; transition: border-color .15s, box-shadow .15s; }
     .fc:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(29,78,216,.1); }
     .fc::placeholder { color: var(--g400); }
     .hint { font-size: 11px; color: var(--g400); margin-top: 4px; }
     .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-
-    /* Price prefix */
     .pfx { display: flex; }
-    .pfx-lbl {
-      padding: 8px 10px; background: var(--g100);
-      border: 1px solid var(--g300); border-right: none;
-      border-radius: var(--r) 0 0 var(--r); font-size: 13px;
-      color: var(--g500); font-weight: 500; white-space: nowrap;
-    }
+    .pfx-lbl { padding: 8px 10px; background: var(--g100); border: 1px solid var(--g300); border-right: none; border-radius: var(--r) 0 0 var(--r); font-size: 13px; color: var(--g500); font-weight: 500; white-space: nowrap; }
     .pfx .fc { border-radius: 0 var(--r) var(--r) 0; }
 
-    /* ── JOB LIST ── */
+    /* JOB LIST */
     .job-search-wrap { position: relative; margin-bottom: 10px; }
     .job-search-ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--g400); font-size: 14px; }
     #jobSearch { padding-left: 30px; }
     .jobs-list { max-height: 340px; overflow-y: auto; border: 1px solid var(--g200); border-radius: var(--r); }
-    .job-item {
-      padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--g100);
-      display: flex; align-items: center; justify-content: space-between;
-      transition: background .1s;
-    }
+    .job-item { padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--g100); display: flex; align-items: center; justify-content: space-between; transition: background .1s; }
     .job-item:last-child { border-bottom: none; }
     .job-item:hover { background: var(--brand-light); }
     .job-item.selected { background: var(--brand-light); border-left: 3px solid var(--brand); padding-left: 11px; }
     .job-name { font-weight: 500; font-size: 13px; }
     .job-meta { font-size: 11px; color: var(--g500); margin-top: 2px; }
-    .job-badge {
-      font-size: 10px; font-family: monospace; font-weight: 600;
-      color: var(--brand); background: var(--brand-light);
-      padding: 2px 7px; border-radius: 4px; border: 1px solid #bfdbfe; white-space: nowrap;
-    }
+    .job-badge { font-size: 10px; font-family: monospace; font-weight: 600; color: var(--brand); background: var(--brand-light); padding: 2px 7px; border-radius: 4px; border: 1px solid #bfdbfe; white-space: nowrap; }
 
-    /* ── UPLOAD ZONE ── */
-    .drop-zone {
-      border: 2px dashed var(--g300); border-radius: var(--r);
-      padding: 36px; text-align: center; cursor: pointer;
-      transition: all .15s; position: relative;
-    }
+    /* DROP ZONE */
+    .drop-zone { border: 2px dashed var(--g300); border-radius: var(--r); padding: 36px; text-align: center; cursor: pointer; transition: all .15s; position: relative; }
     .drop-zone:hover, .drop-zone.over { border-color: var(--brand); background: var(--brand-light); }
     .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
     .drop-icon { font-size: 34px; margin-bottom: 10px; }
     .drop-text { font-size: 14px; color: var(--g600); margin-bottom: 3px; }
     .drop-hint { font-size: 12px; color: var(--g400); }
 
-    /* ── QUEUE ── */
-    .queue-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
-    .queue-item {
-      border: 1px solid var(--g200); border-radius: var(--r);
-      background: white; overflow: hidden;
-    }
-    .queue-item-hdr {
-      padding: 10px 14px; background: var(--g50);
-      border-bottom: 1px solid var(--g200);
-      display: flex; align-items: center; gap: 10px;
-    }
-    .queue-item-ico { font-size: 20px; flex-shrink: 0; }
-    .queue-item-info { flex: 1; min-width: 0; }
-    .queue-item-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .queue-item-size { font-size: 11px; color: var(--g400); }
-    .queue-item-status {
-      font-size: 11px; font-weight: 600; padding: 3px 8px;
-      border-radius: 20px; white-space: nowrap; flex-shrink: 0;
-    }
-    .status-pending   { background: var(--g100); color: var(--g500); }
-    .status-extracting{ background: #eff6ff; color: var(--brand); }
-    .status-ready     { background: #dcfce7; color: #15803d; }
-    .status-submitting{ background: #fffbeb; color: var(--warning); }
-    .status-done      { background: #dcfce7; color: #15803d; }
-    .status-error     { background: var(--error-light); color: var(--error); }
-    .queue-item-body { padding: 14px; }
-    .queue-item-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .queue-item-fields .fg { margin-bottom: 0; }
-    .queue-item-amounts { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .queue-item-error { font-size: 12px; color: var(--error); margin-top: 8px; padding: 8px 10px; background: var(--error-light); border-radius: var(--r); }
-    .queue-item-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 8px; }
-    .queue-summary {
-      padding: 12px 14px; background: var(--g50); border: 1px solid var(--g200);
-      border-radius: var(--r); margin-bottom: 14px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
+    /* QUEUE SUMMARY ROWS (Step 2) */
+    .queue-list { display: flex; flex-direction: column; gap: 6px; }
+    .queue-hdr { padding: 10px 14px; background: var(--g50); border: 1px solid var(--g200); border-radius: var(--r); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
     .queue-count { font-size: 13px; font-weight: 500; }
     .queue-count span { color: var(--brand); font-weight: 700; }
+    .qrow { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid var(--g200); border-radius: var(--r); background: white; font-size: 13px; }
+    .qrow-ico { font-size: 18px; flex-shrink: 0; }
+    .qrow-main { flex: 1; min-width: 0; }
+    .qrow-filename { font-size: 11px; color: var(--g400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .qrow-detail { font-size: 13px; font-weight: 500; margin-top: 1px; color: var(--g800); }
+    .qrow-amount { font-size: 13px; font-weight: 600; color: var(--g700); white-space: nowrap; flex-shrink: 0; }
+    .qrow-badges { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
 
-    /* ── ALERTS ── */
-    .alert {
-      padding: 11px 14px; border-radius: var(--r); font-size: 13px;
-      margin-bottom: 14px; display: flex; gap: 9px; align-items: flex-start; line-height: 1.5;
-    }
-    .alert a { color: inherit; }
-    .alert code { background: rgba(0,0,0,.08); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+    /* STATUS BADGES */
+    .sbadge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+    .sb-pending    { background: var(--g100); color: var(--g500); }
+    .sb-extracting { background: #eff6ff; color: var(--brand); }
+    .sb-ready      { background: #dcfce7; color: #15803d; }
+    .sb-warn       { background: var(--warning-light); color: #92400e; }
+    .sb-submitting { background: #fffbeb; color: var(--warning); }
+    .sb-done       { background: #dcfce7; color: #15803d; }
+    .sb-error      { background: var(--error-light); color: var(--error); }
+
+    /* COMPANY VALIDATION */
+    .co-block { margin-top: 6px; }
+    .co-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 11px; border-radius: var(--r); font-size: 12px; border: 1px solid var(--g200); background: var(--g50); }
+    .co-row.ok      { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+    .co-row.warn    { background: var(--warning-light); border-color: #fcd34d; color: #78350f; }
+    .co-row.loading { background: #eff6ff; border-color: #bfdbfe; color: var(--brand); }
+    .co-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+    .co-similar-list { margin-top: 7px; display: flex; flex-direction: column; gap: 4px; }
+    .co-similar-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border: 1px solid var(--g200); border-radius: 6px; background: white; font-size: 12px; cursor: pointer; transition: background .1s; }
+    .co-similar-item:hover { background: var(--brand-light); border-color: #bfdbfe; }
+    .co-similar-name { font-weight: 500; }
+
+    /* ALERTS */
+    .alert { padding: 11px 14px; border-radius: var(--r); font-size: 13px; margin-bottom: 14px; display: flex; gap: 9px; align-items: flex-start; line-height: 1.5; }
     .alert-info    { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
     .alert-success { background: var(--success-light); color: #14532d; border: 1px solid #86efac; }
     .alert-error   { background: var(--error-light); color: #7f1d1d; border: 1px solid #fca5a5; }
     .alert-warning { background: var(--warning-light); color: #78350f; border: 1px solid #fcd34d; }
 
-    /* ── JOB BANNER ── */
-    .job-banner {
-      background: var(--brand-light); border: 1px solid #bfdbfe;
-      border-radius: var(--r); padding: 11px 14px; margin-bottom: 16px;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    }
+    /* JOB BANNER */
+    .job-banner { background: var(--brand-light); border: 1px solid #bfdbfe; border-radius: var(--r); padding: 11px 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .job-banner-label { font-size: 10px; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
     .job-banner-name { font-size: 14px; font-weight: 600; }
     .job-banner-meta { font-size: 11px; color: var(--g500); margin-top: 2px; }
 
-    /* ── FILENAME BOX ── */
-    .fname-box {
-      padding: 10px 13px; background: var(--g50);
-      border: 1px solid var(--g200); border-radius: var(--r);
-      font-family: monospace; font-size: 12px; color: var(--g700); word-break: break-all;
-    }
+    /* FILENAME BOX */
+    .fname-box { padding: 10px 13px; background: var(--g50); border: 1px solid var(--g200); border-radius: var(--r); font-family: monospace; font-size: 12px; color: var(--g700); word-break: break-all; }
 
-    /* ── TOGGLE ROW ── */
-    .toggle-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px; background: var(--g50);
-      border: 1px solid var(--g200); border-radius: var(--r);
-    }
+    /* TOGGLE */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--g50); border: 1px solid var(--g200); border-radius: var(--r); }
     .toggle-lbl { font-size: 13px; font-weight: 500; }
     .toggle-sub { font-size: 11px; color: var(--g400); margin-top: 1px; }
     input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand); cursor: pointer; }
 
-    /* ── SPINNER ── */
-    .spin {
-      display: inline-block; width: 14px; height: 14px;
-      border: 2px solid currentColor; border-right-color: transparent;
-      border-radius: 50%; animation: spin .6s linear infinite;
-    }
+    /* SPINNER */
+    .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── MODAL ── */
-    .modal-bg {
-      position: fixed; inset: 0; background: rgba(0,0,0,.45);
-      z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px;
-    }
+    /* MODAL */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
     .modal-bg.open { display: flex; }
-    .modal {
-      background: white; border-radius: 10px; box-shadow: var(--shadow-lg);
-      width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto;
-    }
-    .modal-hdr {
-      padding: 18px 22px 14px; border-bottom: 1px solid var(--g100);
-      display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white;
-    }
+    .modal { background: white; border-radius: 10px; box-shadow: var(--shadow-lg); width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; }
+    .modal-hdr { padding: 18px 22px 14px; border-bottom: 1px solid var(--g100); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; }
     .modal-title { font-size: 15px; font-weight: 600; }
     .modal-body { padding: 20px 22px; }
-    .modal-ftr {
-      padding: 14px 22px 18px; border-top: 1px solid var(--g100);
-      display: flex; justify-content: flex-end; gap: 8px;
-      position: sticky; bottom: 0; background: white;
-    }
+    .modal-ftr { padding: 14px 22px 18px; border-top: 1px solid var(--g100); display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: white; }
 
-    /* ── DRIVE STATUS ── */
-    .drive-status-bar {
-      display: flex; align-items: center; gap: 8px;
-      padding: 9px 13px; border-radius: var(--r);
-      font-size: 12px; font-weight: 500;
-      border: 1px solid var(--g200); background: var(--g50);
-      margin-top: 10px;
-    }
-    .drive-status-bar.connected { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+    /* DRIVE STATUS */
+    .drive-status-bar { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: var(--r); font-size: 12px; font-weight: 500; border: 1px solid var(--g200); background: var(--g50); margin-top: 10px; }
+    .drive-status-bar.connected  { background: #f0fdf4; border-color: #86efac; color: #15803d; }
     .drive-status-bar.connecting { background: #eff6ff; border-color: #bfdbfe; color: var(--brand); }
-    .drive-status-bar.failed { background: var(--error-light); border-color: #fca5a5; color: var(--error); }
+    .drive-status-bar.failed     { background: var(--error-light); border-color: #fca5a5; color: var(--error); }
 
-    /* ── MISC ── */
+    /* MISC */
     .divider { height: 1px; background: var(--g100); margin: 18px 0; }
     .sec-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--g400); margin-bottom: 10px; }
     .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-    .badge-ok { background: #dcfce7; color: #15803d; }
+    .badge-ok   { background: #dcfce7; color: #15803d; }
     .badge-warn { background: var(--warning-light); color: var(--warning); }
     .empty { text-align: center; padding: 36px 20px; color: var(--g500); }
     .empty-ico { font-size: 30px; margin-bottom: 8px; }
     .step-ftr { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
     .hidden { display: none !important; }
-    .success-circle {
-      width: 64px; height: 64px; background: var(--success-light); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px;
-    }
-
-    /* ── BULK RESULTS ── */
+    .success-circle { width: 64px; height: 64px; background: var(--success-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px; }
     .bulk-result-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; text-align: left; }
-    .bulk-result-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 10px 12px; border-radius: var(--r);
-      font-size: 13px; border: 1px solid var(--g200); background: var(--g50);
-    }
+    .bulk-result-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--r); font-size: 13px; border: 1px solid var(--g200); background: var(--g50); }
     .bulk-result-item.ok  { background: #f0fdf4; border-color: #86efac; }
     .bulk-result-item.err { background: var(--error-light); border-color: #fca5a5; }
     .bulk-result-icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
     .bulk-result-name { font-weight: 500; }
     .bulk-result-detail { font-size: 11px; color: var(--g500); margin-top: 2px; }
 
-    @media (max-width: 580px) {
-      .row2, .row3, .queue-item-fields, .queue-item-amounts { grid-template-columns: 1fr; }
-      .main { padding: 14px 10px; }
-    }
+    @media (max-width: 580px) { .row2, .row3 { grid-template-columns: 1fr; } .main { padding: 14px 10px; } }
   </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════ HEADER ══ -->
 <header class="hdr">
-  <div class="hdr-logo">
-    <div class="hdr-mark">💳</div>
-    Expense Logger
-  </div>
+  <div class="hdr-logo"><div class="hdr-mark">💳</div>Expense Logger</div>
   <div class="hdr-right">
     <div id="cfgBadge" class="badge"></div>
     <button class="btn btn-ghost" onclick="openSettings()" title="Settings">⚙️</button>
   </div>
 </header>
 
-<!-- ══════════════════════════════════════ SETTINGS MODAL ══ -->
+<!-- SETTINGS MODAL -->
 <div id="settingsModal" class="modal-bg">
   <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">⚙️ Settings</div>
-      <button class="btn btn-ghost btn-sm" onclick="closeSettings()">✕</button>
-    </div>
+    <div class="modal-hdr"><div class="modal-title">⚙️ Settings</div><button class="btn btn-ghost btn-sm" onclick="closeSettings()">✕</button></div>
     <div class="modal-body">
-
       <div class="sec-lbl">Connection</div>
       <div class="fg">
         <label class="lbl">Worker URL <span class="req">*</span></label>
         <input type="url" id="s_workerUrl" class="fc" placeholder="https://expense-logger-proxy.your-subdomain.workers.dev">
-        <div class="hint">Your Cloudflare Worker URL — all API calls are proxied through here. API keys never leave the server.</div>
+        <div class="hint">Your Cloudflare Worker URL — API keys never leave the server.</div>
       </div>
       <div id="workerTestResult" style="font-size:12px;margin-top:-6px;margin-bottom:10px;"></div>
       <button class="btn btn-secondary btn-sm" onclick="testWorker()" type="button">Test connection</button>
-
       <div class="divider"></div>
-
       <div class="sec-lbl">Your Details</div>
       <div class="fg">
         <label class="lbl">Initials <span class="req">*</span></label>
         <input type="text" id="s_initials" class="fc" placeholder="e.g. BE" maxlength="4" style="max-width:80px;">
-        <div class="hint">Used in the Google Drive filename — personal to you, not shared</div>
+        <div class="hint">Used in the Google Drive filename</div>
       </div>
-
     </div>
     <div class="modal-ftr">
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
@@ -366,10 +236,8 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════ MAIN ══ -->
 <main class="main">
 
-  <!-- Step indicators -->
   <div class="steps">
     <div class="step" id="si1"><div class="step-num">1</div><div class="step-lbl">Select Job</div></div>
     <div class="step-connector"></div>
@@ -378,28 +246,20 @@
     <div class="step" id="si3"><div class="step-num">3</div><div class="step-lbl">Review & Submit</div></div>
   </div>
 
-  <!-- ── STEP 1: SELECT JOB ── -->
+  <!-- STEP 1 -->
   <div id="step1" class="card">
-    <div class="card-hdr">
-      <div class="card-title">Select a Job</div>
-      <button class="btn btn-secondary btn-sm" id="refreshBtn" onclick="loadJobs()">↻ Refresh</button>
-    </div>
+    <div class="card-hdr"><div class="card-title">Select a Job</div><button class="btn btn-secondary btn-sm" onclick="loadJobs()">↻ Refresh</button></div>
     <div class="card-body">
-
       <div id="s1_noKey" class="empty hidden">
-        <div class="empty-ico">⚙️</div>
-        <div style="font-weight:500;margin-bottom:4px;">API key required</div>
-        <div style="font-size:12px;color:var(--g400);">Add your Streamtime API key in Settings to load jobs</div>
+        <div class="empty-ico">⚙️</div><div style="font-weight:500;margin-bottom:4px;">Setup required</div>
+        <div style="font-size:12px;color:var(--g400);">Configure your Worker URL in Settings</div>
         <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="openSettings()">Open Settings</button>
       </div>
-
       <div id="s1_loading" class="empty hidden">
         <div class="spin" style="width:22px;height:22px;margin:0 auto 10px;border-width:3px;color:var(--brand);"></div>
-        <div style="font-size:13px;color:var(--g500);">Loading jobs from Streamtime…</div>
+        <div style="font-size:13px;color:var(--g500);">Loading jobs…</div>
       </div>
-
       <div id="s1_error" class="alert alert-error hidden"></div>
-
       <div id="s1_jobs" class="hidden">
         <div class="job-search-wrap">
           <span class="job-search-ico">🔍</span>
@@ -407,23 +267,17 @@
         </div>
         <div class="jobs-list" id="jobsList"></div>
       </div>
-
       <div id="s1_actions" class="step-ftr hidden">
         <button class="btn btn-primary" onclick="goStep(2)">Continue →</button>
       </div>
-
     </div>
   </div>
 
-  <!-- ── STEP 2: UPLOAD (BULK QUEUE) ── -->
+  <!-- STEP 2 -->
   <div id="step2" class="card hidden">
-    <div class="card-hdr">
-      <div class="card-title">Upload Receipts</div>
-      <button class="btn btn-secondary btn-sm" onclick="goStep(1)">← Back</button>
-    </div>
+    <div class="card-hdr"><div class="card-title">Upload Receipts</div><button class="btn btn-secondary btn-sm" onclick="goStep(1)">← Back</button></div>
     <div class="card-body">
-
-      <div id="s2_jobBanner" class="job-banner">
+      <div class="job-banner">
         <div>
           <div class="job-banner-label">Selected Job</div>
           <div id="s2_jobName" class="job-banner-name"></div>
@@ -431,69 +285,42 @@
         </div>
         <button class="btn btn-secondary btn-sm" onclick="goStep(1)">Change</button>
       </div>
-
-      <!-- Drop zone — always visible in step 2 for adding more files -->
       <div class="drop-zone" id="dropZone">
         <input type="file" id="fileInput" accept="image/*,application/pdf" multiple onchange="handleFileSelect(this.files)">
         <div class="drop-icon">📎</div>
         <div class="drop-text"><strong>Drop files here</strong> or click to browse</div>
         <div class="drop-hint">JPG, PNG, WebP or PDF · Max 20 MB each · Multiple files supported</div>
       </div>
-
       <div id="s2_error" class="alert alert-error hidden" style="margin-top:14px;"></div>
-
-      <!-- Queue list -->
       <div id="queueWrap" class="hidden" style="margin-top:16px;">
-        <div class="queue-summary">
-          <div class="queue-count"><span id="queueReadyCount">0</span> receipt(s) ready to review</div>
+        <div class="queue-hdr">
+          <div class="queue-count"><span id="queueReadyCount">0</span> receipt(s) ready</div>
           <button class="btn btn-ghost btn-sm" onclick="clearQueue()">Clear all</button>
         </div>
         <div class="queue-list" id="queueList"></div>
       </div>
-
       <div class="step-ftr" style="margin-top:16px;">
-        <button class="btn btn-primary" id="extractAllBtn" onclick="extractAll()" disabled>
-          ✨ Extract All with AI
-        </button>
-        <button class="btn btn-primary" id="proceedBtn" onclick="goStep(3)" disabled>
-          Review & Submit →
-        </button>
+        <button class="btn btn-secondary" id="extractAllBtn" onclick="extractAll()" disabled>✨ Extract All with AI</button>
+        <button class="btn btn-primary" id="proceedBtn" onclick="goStep(3)" disabled>Review & Submit →</button>
       </div>
-
     </div>
   </div>
 
-  <!-- ── STEP 3: REVIEW & SUBMIT (BULK) ── -->
+  <!-- STEP 3 -->
   <div id="step3" class="card hidden">
-    <div class="card-hdr">
-      <div class="card-title">Review & Submit</div>
-      <button class="btn btn-secondary btn-sm" onclick="goStep(2)">← Back</button>
-    </div>
+    <div class="card-hdr"><div class="card-title">Review & Submit</div><button class="btn btn-secondary btn-sm" onclick="goStep(2)">← Back</button></div>
     <div class="card-body">
-
       <div class="job-banner" style="margin-bottom:16px;">
-        <div>
-          <div class="job-banner-label">Job</div>
-          <div id="s3_jobName" class="job-banner-name"></div>
-        </div>
+        <div><div class="job-banner-label">Job</div><div id="s3_jobName" class="job-banner-name"></div></div>
       </div>
-
       <div class="alert alert-info" id="s3_notice">
-        ✨ Details extracted. Review all expenses below before submitting — all fields are editable.
+        ✨ Details extracted. Review all expenses carefully — all fields are editable. Suppliers flagged in amber need attention before submitting.
       </div>
-
-      <!-- Per-expense review cards rendered here -->
       <div id="s3_reviewList"></div>
-
       <div class="divider"></div>
-
-      <!-- Drive toggle — shared for all items in the batch -->
       <div class="fg">
         <div class="toggle-row">
-          <div>
-            <div class="toggle-lbl">Save receipts to Google Drive</div>
-            <div class="toggle-sub">Uploads all receipt files using the generated filenames</div>
-          </div>
+          <div><div class="toggle-lbl">Save receipts to Google Drive</div><div class="toggle-sub">Uploads files into a monthly folder (e.g. April 2026)</div></div>
           <input type="checkbox" id="driveToggle" onchange="onDriveToggle()">
         </div>
         <div id="driveAuthRow" class="hidden">
@@ -503,19 +330,14 @@
           </div>
         </div>
       </div>
-
       <div id="s3_error" class="alert alert-error hidden" style="margin-top:14px;"></div>
-
       <div class="step-ftr">
-        <button class="btn btn-success btn-lg" id="submitBtn" onclick="handleBulkSubmit()">
-          ✓ Submit All Expenses
-        </button>
+        <button class="btn btn-success btn-lg" id="submitBtn" onclick="handleBulkSubmit()">✓ Submit All Expenses</button>
       </div>
-
     </div>
   </div>
 
-  <!-- ── STEP 4: SUCCESS ── -->
+  <!-- STEP 4 -->
   <div id="step4" class="card hidden">
     <div class="card-body" style="text-align:center;padding:44px 24px;">
       <div class="success-circle">✓</div>
@@ -523,835 +345,733 @@
       <p id="successMsg" style="color:var(--g500);font-size:14px;margin-bottom:16px;line-height:1.6;"></p>
       <div id="bulkResultList" class="bulk-result-list"></div>
       <div id="successLinks" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;"></div>
-      <div style="margin-top:24px;">
-        <button class="btn btn-primary" onclick="reset()">Log More Expenses</button>
-      </div>
+      <div style="margin-top:24px;"><button class="btn btn-primary" onclick="reset()">Log More Expenses</button></div>
     </div>
   </div>
 
 </main>
 
 <script>
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 let cfg = {};
-let allJobs = [];
-let jobsById = {};
-let selectedJob = null;
+let allJobs = [], jobsById = {}, selectedJob = null;
 let driveToken = null;
 let step = 1;
-
-// Queue: array of items
-// { id, file, b64, mimeType, status: 'pending'|'extracting'|'ready'|'submitting'|'done'|'error',
-//   extracted: {date,supplier,itemName,reference,amountExGST,gstAmount,totalIncGST},
-//   markup: null|number, error: null|string, driveFileId: null|string }
-let queue = [];
+let queue = [];        // See shape comment below
 let nextQueueId = 1;
+const driveFolderCache = {};  // "April 2026" → folder_id
 
-// ═══════════════════════════════════════════════════
+// Queue item shape:
+// { id, file, b64, mimeType,
+//   status: 'pending'|'extracting'|'ready'|'submitting'|'done'|'error',
+//   extracted: { date, supplier, itemName, reference, amountExGST, gstAmount, totalIncGST },
+//   markup: null|number,
+//   company: null | { status:'checking'|'matched'|'similar'|'notfound'|'created'|'error',
+//                     matchedId, matchedName, similar:[], chosenId, chosenName, errorMsg },
+//   error: null|string, driveFileId: null|string }
+
+// ═══════════════════════════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  loadCfg();
-  setupDrop();
-  setStep(1);
-  if (cfg.workerUrl) initFromWorker();
-  else showState('noKey');
+  loadCfg(); setupDrop(); setStep(1);
+  if (cfg.workerUrl) initFromWorker(); else showState('noKey');
 });
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // SETTINGS
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function loadCfg() {
-  try { cfg = JSON.parse(localStorage.getItem('elSettings') || '{}'); }
-  catch { cfg = {}; }
+  try { cfg = JSON.parse(localStorage.getItem('elSettings') || '{}'); } catch { cfg = {}; }
   refreshBadge();
 }
-
 function saveSettings() {
   cfg = {
     workerUrl: document.getElementById('s_workerUrl').value.trim().replace(/\/$/, ''),
     initials:  document.getElementById('s_initials').value.trim().toUpperCase(),
   };
   try { localStorage.setItem('elSettings', JSON.stringify(cfg)); } catch {}
-  refreshBadge();
-  closeSettings();
-  if (cfg.workerUrl) initFromWorker();
-  else showState('noKey');
+  refreshBadge(); closeSettings();
+  if (cfg.workerUrl) initFromWorker(); else showState('noKey');
 }
-
 function openSettings() {
   document.getElementById('s_workerUrl').value = cfg.workerUrl || '';
   document.getElementById('s_initials').value  = cfg.initials  || '';
   document.getElementById('workerTestResult').textContent = '';
   document.getElementById('settingsModal').classList.add('open');
 }
-
-function closeSettings() {
-  document.getElementById('settingsModal').classList.remove('open');
-}
-
+function closeSettings() { document.getElementById('settingsModal').classList.remove('open'); }
 function refreshBadge() {
   const ok = cfg.workerUrl && cfg.initials;
   const b = document.getElementById('cfgBadge');
   b.textContent = ok ? '✓ Configured' : '⚠ Setup required';
   b.className = 'badge ' + (ok ? 'badge-ok' : 'badge-warn');
 }
-
 async function testWorker() {
   const url = document.getElementById('s_workerUrl').value.trim().replace(/\/$/, '');
-  const el  = document.getElementById('workerTestResult');
+  const el = document.getElementById('workerTestResult');
   if (!url) { el.textContent = 'Enter a Worker URL first.'; el.style.color = 'var(--warning)'; return; }
   el.textContent = 'Testing…'; el.style.color = 'var(--g500)';
   try {
-    const res = await fetch(`${url}/`);
-    const data = await res.json();
-    if (data.status === 'ok') {
-      el.textContent = '✓ Worker is reachable'; el.style.color = 'var(--success)';
-    } else {
-      el.textContent = `Unexpected response: ${JSON.stringify(data)}`; el.style.color = 'var(--warning)';
-    }
-  } catch (err) {
-    el.textContent = `✗ Could not reach Worker: ${err.message}`; el.style.color = 'var(--error)';
-  }
+    const data = await fetch(`${url}/`).then(r => r.json());
+    el.textContent = data.status === 'ok' ? '✓ Worker is reachable' : `Unexpected: ${JSON.stringify(data)}`;
+    el.style.color = data.status === 'ok' ? 'var(--success)' : 'var(--warning)';
+  } catch (err) { el.textContent = `✗ ${err.message}`; el.style.color = 'var(--error)'; }
 }
-
-// ═══════════════════════════════════════════════════
-// WORKER CONFIG
-// ═══════════════════════════════════════════════════
-async function initFromWorker() {
-  try {
-    const res = await fetch(`${cfg.workerUrl}/config`);
-    if (res.ok) {
-      const data = await res.json();
-      cfg.gcid     = data.googleClientId || '';
-      cfg.folderId = data.driveFolderId  || '';
-    }
-  } catch {
-    // Non-fatal
-  }
-  loadJobs();
-  // Attempt silent Drive re-auth after config is loaded
-  trySilentDriveAuth();
-}
-
 document.getElementById('settingsModal').addEventListener('click', e => {
   if (e.target === document.getElementById('settingsModal')) closeSettings();
 });
 
-// ═══════════════════════════════════════════════════
-// STREAMTIME — LIST JOBS
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// WORKER + JOBS
+// ═══════════════════════════════════════════════════════════════
+async function initFromWorker() {
+  try {
+    const res = await fetch(`${cfg.workerUrl}/config`);
+    if (res.ok) { const d = await res.json(); cfg.gcid = d.googleClientId||''; cfg.folderId = d.driveFolderId||''; }
+  } catch {}
+  loadJobs();
+  trySilentDriveAuth();
+}
 async function loadJobs() {
   if (!cfg.workerUrl) { showState('noKey'); return; }
   showState('loading');
-
   try {
     const res = await fetch(`${cfg.workerUrl}/jobs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        wildcardSearch: '',
-        offset: 0,
-        maxResults: 500,
-        filterGroupCollection: { conditionMatchTypeId: 1, filterGroupCollections: [] }
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wildcardSearch:'', offset:0, maxResults:500, filterGroupCollection:{ conditionMatchTypeId:1, filterGroupCollections:[] } })
     });
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || `Worker error ${res.status}`);
-    }
-
+    if (!res.ok) { const d = await res.json().catch(()=>({})); throw new Error(d.error || `Error ${res.status}`); }
     const data = await res.json();
-    allJobs = (data.searchResults || []).map(normaliseJob).filter(j => j.id && j.name);
+    allJobs = (data.searchResults||[]).map(normaliseJob).filter(j => j.id && j.name);
     allJobs.forEach(j => { jobsById[j.id] = j; });
-
-    if (!allJobs.length) {
-      throw new Error('No jobs returned. Check your Worker is deployed and STREAMTIME_KEY is set correctly.');
-    }
-
-    showState('jobs');
-    renderJobs(allJobs);
-
-  } catch (err) {
-    showState('error', err.message);
-  }
+    if (!allJobs.length) throw new Error('No jobs returned. Check STREAMTIME_KEY is set.');
+    showState('jobs'); renderJobs(allJobs);
+  } catch (err) { showState('error', err.message); }
 }
-
 function normaliseJob(r) {
-  const id   = r.id   ?? r.jobId   ?? r['Job ID']   ?? r['ID'];
-  const name = r.name ?? r.jobName ?? r['Job Name']  ?? r['Name'];
-  const num  = r.number ?? r.jobNumber ?? r['Job Number'] ?? r['Number'] ?? null;
-  const full = r.fullName ?? r['Full Name'] ?? null;
-  const client = (typeof r.company === 'object' ? r.company?.name : r.company)
-              ?? r.companyName ?? r['Company'] ?? r['Client'] ?? '';
-  const status = (typeof r.jobStatus === 'object' ? r.jobStatus?.name : r.jobStatus)
-              ?? r['Job Status'] ?? r['Status'] ?? '';
-  return { id: String(id), name, num, full, client, status };
+  return {
+    id:     String(r.id ?? r.jobId ?? r['Job ID'] ?? r['ID']),
+    name:   r.name ?? r.jobName ?? r['Job Name'] ?? r['Name'],
+    num:    r.number ?? r.jobNumber ?? r['Job Number'] ?? r['Number'] ?? null,
+    full:   r.fullName ?? r['Full Name'] ?? null,
+    client: (typeof r.company==='object' ? r.company?.name : r.company) ?? r.companyName ?? r['Company'] ?? r['Client'] ?? '',
+  };
 }
-
-function showState(state, msg = '') {
-  ['noKey','loading','error','jobs'].forEach(s => {
-    const el = document.getElementById(`s1_${s}`);
-    if (el) el.classList.add('hidden');
-  });
-  const target = document.getElementById(`s1_${state}`);
-  if (!target) return;
-  if (state === 'error') target.innerHTML = '⚠️ ' + msg;
-  target.classList.remove('hidden');
+function showState(state, msg='') {
+  ['noKey','loading','error','jobs'].forEach(s => document.getElementById(`s1_${s}`)?.classList.add('hidden'));
+  const el = document.getElementById(`s1_${state}`);
+  if (!el) return;
+  if (state === 'error') el.innerHTML = '⚠️ ' + msg;
+  el.classList.remove('hidden');
 }
-
 function renderJobs(jobs) {
   const list = document.getElementById('jobsList');
-  if (!jobs.length) {
-    list.innerHTML = '<div class="empty"><div class="empty-ico">🔍</div>No matching jobs</div>';
-    return;
-  }
+  if (!jobs.length) { list.innerHTML = '<div class="empty"><div class="empty-ico">🔍</div>No matching jobs</div>'; return; }
   list.innerHTML = jobs.map(j => `
-    <div class="job-item ${selectedJob?.id === j.id ? 'selected' : ''}"
-         onclick="pickJob('${esc(j.id)}')" data-jid="${esc(j.id)}">
-      <div>
-        <div class="job-name">${esc(j.full || j.name)}</div>
-        ${j.client ? `<div class="job-meta">${esc(j.client)}</div>` : ''}
-      </div>
-      ${j.num ? `<span class="job-badge">${esc(j.num)}</span>` : ''}
+    <div class="job-item ${selectedJob?.id===j.id?'selected':''}" onclick="pickJob('${esc(j.id)}')" data-jid="${esc(j.id)}">
+      <div><div class="job-name">${esc(j.full||j.name)}</div>${j.client?`<div class="job-meta">${esc(j.client)}</div>`:''}</div>
+      ${j.num?`<span class="job-badge">${esc(j.num)}</span>`:''}
     </div>`).join('');
 }
-
 function filterJobs() {
   const q = document.getElementById('jobSearch').value.toLowerCase();
   renderJobs(allJobs.filter(j =>
-    (j.name||'').toLowerCase().includes(q) ||
-    (j.num||'').toLowerCase().includes(q) ||
-    (j.client||'').toLowerCase().includes(q) ||
-    (j.full||'').toLowerCase().includes(q)
-  ));
+    (j.name||'').toLowerCase().includes(q)||(j.num||'').toLowerCase().includes(q)||
+    (j.client||'').toLowerCase().includes(q)||(j.full||'').toLowerCase().includes(q)));
 }
-
 function pickJob(id) {
   selectedJob = jobsById[id];
   if (!selectedJob) return;
-  document.querySelectorAll('.job-item').forEach(el =>
-    el.classList.toggle('selected', el.dataset.jid === id));
+  document.querySelectorAll('.job-item').forEach(el => el.classList.toggle('selected', el.dataset.jid===id));
   document.getElementById('s1_actions').classList.remove('hidden');
-  syncJobBanners();
-}
-
-function syncJobBanners() {
-  if (!selectedJob) return;
-  const name = selectedJob.full || selectedJob.name || '';
+  const name = selectedJob.full||selectedJob.name||'';
   const meta = [selectedJob.num, selectedJob.client].filter(Boolean).join(' · ');
-  setText('s2_jobName', name); setText('s2_jobMeta', meta);
-  setText('s3_jobName', name);
+  setText('s2_jobName', name); setText('s2_jobMeta', meta); setText('s3_jobName', name);
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function goStep(n) {
-  if (n === 2 && !selectedJob) { alert('Please select a job first.'); return; }
-  if (n === 3 && queue.length === 0) { alert('Please add at least one receipt.'); return; }
-  if (n === 3) renderReviewList();
+  if (n===2 && !selectedJob) { alert('Please select a job first.'); return; }
+  if (n===3 && !queue.some(i => i.status==='ready'||i.status==='done')) { alert('Please extract at least one receipt first.'); return; }
+  if (n===3) renderReviewList();
   setStep(n);
 }
-
 function setStep(n) {
   step = n;
-  for (let i = 1; i <= 4; i++) {
-    const el = document.getElementById(`step${i}`);
-    if (el) el.classList.toggle('hidden', i !== n);
-  }
-  for (let i = 1; i <= 3; i++) {
-    const el = document.getElementById(`si${i}`);
-    if (!el) continue;
+  for (let i=1;i<=4;i++) document.getElementById(`step${i}`)?.classList.toggle('hidden', i!==n);
+  for (let i=1;i<=3;i++) {
+    const el = document.getElementById(`si${i}`); if (!el) continue;
     el.classList.remove('active','done');
-    if (i < n) el.classList.add('done');
-    else if (i === n) el.classList.add('active');
+    if (i<n) el.classList.add('done'); else if (i===n) el.classList.add('active');
   }
 }
 
-// ═══════════════════════════════════════════════════
-// FILE HANDLING — QUEUE-BASED
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// FILE HANDLING
+// ═══════════════════════════════════════════════════════════════
 function setupDrop() {
   const zone = document.getElementById('dropZone');
   zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
   zone.addEventListener('dragleave', () => zone.classList.remove('over'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault(); zone.classList.remove('over');
-    if (e.dataTransfer?.files?.length) handleFileSelect(e.dataTransfer.files);
-  });
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('over'); if (e.dataTransfer?.files?.length) handleFileSelect(e.dataTransfer.files); });
 }
-
 function handleFileSelect(files) {
   document.getElementById('s2_error').classList.add('hidden');
   const allowed = ['image/jpeg','image/png','image/webp','application/pdf'];
-  let added = 0;
-
   Array.from(files).forEach(file => {
-    if (file.size > 20 * 1024 * 1024) {
-      showErr('s2_error', `${file.name}: too large (max 20 MB).`); return;
-    }
-    if (!allowed.includes(file.type)) {
-      showErr('s2_error', `${file.name}: unsupported type. Use JPG, PNG, WebP, or PDF.`); return;
-    }
+    if (file.size > 20*1024*1024) { showErr('s2_error', `${file.name}: too large (max 20 MB).`); return; }
+    if (!allowed.includes(file.type)) { showErr('s2_error', `${file.name}: unsupported type.`); return; }
     const item = {
-      id: nextQueueId++,
-      file,
-      b64: null,
-      mimeType: file.type,
-      status: 'pending',
-      extracted: { date: today(), supplier: '', itemName: '', reference: '', amountExGST: '', gstAmount: '', totalIncGST: '' },
-      markup: null,
-      error: null,
-      driveFileId: null,
+      id: nextQueueId++, file, b64: null, mimeType: file.type, status: 'pending',
+      extracted: { date:today(), supplier:'', itemName:'', reference:'', amountExGST:'', gstAmount:'', totalIncGST:'' },
+      markup: null, company: null, error: null, driveFileId: null,
     };
     queue.push(item);
-    added++;
-    // Read b64 immediately
     const reader = new FileReader();
     reader.onload = e => { item.b64 = e.target.result.split(',')[1]; };
     reader.readAsDataURL(file);
   });
-
-  // Reset file input so same files can be re-added if needed
   document.getElementById('fileInput').value = '';
-
-  if (added > 0) renderQueueList();
-}
-
-function clearQueue() {
-  queue = [];
   renderQueueList();
 }
+function clearQueue() { queue = []; renderQueueList(); }
+function removeQueueItem(id) { queue = queue.filter(i => i.id!==id); renderQueueList(); }
 
-function removeQueueItem(id) {
-  queue = queue.filter(i => i.id !== id);
-  renderQueueList();
-}
-
+// ═══════════════════════════════════════════════════════════════
+// QUEUE RENDER — Step 2: minimal summary rows
+// ═══════════════════════════════════════════════════════════════
 function renderQueueList() {
   const wrap = document.getElementById('queueWrap');
   const list = document.getElementById('queueList');
-  const extractAllBtn = document.getElementById('extractAllBtn');
+  const extractBtn = document.getElementById('extractAllBtn');
   const proceedBtn = document.getElementById('proceedBtn');
 
-  if (!queue.length) {
-    wrap.classList.add('hidden');
-    extractAllBtn.disabled = true;
-    proceedBtn.disabled = true;
-    return;
-  }
-
+  if (!queue.length) { wrap.classList.add('hidden'); extractBtn.disabled=true; proceedBtn.disabled=true; return; }
   wrap.classList.remove('hidden');
 
-  const readyCount = queue.filter(i => i.status === 'ready' || i.status === 'done').length;
-  const pendingCount = queue.filter(i => i.status === 'pending').length;
+  const readyCount   = queue.filter(i => i.status==='ready'||i.status==='done').length;
+  const pendingCount = queue.filter(i => i.status==='pending').length;
   setText('queueReadyCount', readyCount);
-
-  extractAllBtn.disabled = pendingCount === 0 || !cfg.workerUrl;
-  proceedBtn.disabled = readyCount === 0;
+  extractBtn.disabled = pendingCount===0 || !cfg.workerUrl;
+  proceedBtn.disabled = readyCount===0;
 
   list.innerHTML = queue.map(item => {
-    const isPdf = item.mimeType === 'application/pdf';
-    const statusLabel = { pending:'Pending', extracting:'Extracting…', ready:'Ready', submitting:'Submitting…', done:'Done', error:'Error' }[item.status] || item.status;
-    return `
-      <div class="queue-item" id="qitem_${item.id}">
-        <div class="queue-item-hdr">
-          <div class="queue-item-ico">${isPdf ? '📄' : '🖼️'}</div>
-          <div class="queue-item-info">
-            <div class="queue-item-name">${esc(item.file.name)}</div>
-            <div class="queue-item-size">${fmtSize(item.file.size)}</div>
-          </div>
-          <span class="queue-item-status status-${item.status}">${statusLabel}</span>
-          ${item.status !== 'done' && item.status !== 'submitting' ? `<button class="btn btn-ghost btn-sm" onclick="removeQueueItem(${item.id})" title="Remove">✕</button>` : ''}
-        </div>
-        ${item.status === 'ready' || item.status === 'error' ? renderQueueItemBody(item) : ''}
-        ${item.status === 'error' && item.error ? `<div class="queue-item-error" style="margin:0 14px 14px;">⚠ ${esc(item.error)}</div>` : ''}
-      </div>`;
+    const d = item.extracted;
+    const isPdf = item.mimeType==='application/pdf';
+    const processing = item.status==='extracting'||item.status==='submitting';
+
+    // Detail text
+    let detail = '';
+    if (item.status==='pending')       detail = 'Pending extraction';
+    else if (item.status==='extracting') detail = 'Extracting with AI…';
+    else if (item.status==='submitting') detail = 'Submitting…';
+    else if (item.status==='error')    detail = `Error: ${esc(item.error||'unknown')}`;
+    else detail = esc(d.supplier || '—');
+
+    const amountStr = (d.amountExGST!==''&&d.amountExGST!=null) ? `$${parseFloat(d.amountExGST).toFixed(2)} ex GST` : '';
+
+    // Status badge
+    const sbMap = { pending:'sb-pending Pending', extracting:'sb-extracting Extracting…', ready:'sb-ready Ready',
+                    submitting:'sb-submitting Submitting…', done:'sb-done Done', error:'sb-error Error' };
+    const [sbClass, sbLabel] = (sbMap[item.status]||'sb-pending Pending').split(' ');
+
+    // Company badge (on summary row)
+    let coBadge = '';
+    if (item.company) {
+      if (item.company.status==='matched'||item.company.status==='created') {
+        coBadge = `<span class="sbadge sb-ready">✓ ${item.company.status==='created'?'New company':'Company'}</span>`;
+      } else if (item.company.status==='checking') {
+        coBadge = `<span class="sbadge sb-extracting">Checking…</span>`;
+      } else if (['similar','notfound','error'].includes(item.company.status)) {
+        coBadge = `<span class="sbadge sb-warn">⚠ Company</span>`;
+      }
+    }
+
+    return `<div class="qrow" id="qrow_${item.id}">
+      <div class="qrow-ico">${processing ? '<span class="spin" style="width:16px;height:16px;color:var(--brand);border-width:2px;"></span>' : (isPdf?'📄':'🖼️')}</div>
+      <div class="qrow-main">
+        <div class="qrow-filename">${esc(item.file.name)} · ${fmtSize(item.file.size)}</div>
+        <div class="qrow-detail">${detail}</div>
+      </div>
+      ${amountStr ? `<div class="qrow-amount">${amountStr}</div>` : ''}
+      <div class="qrow-badges">${coBadge}<span class="sbadge ${sbClass}">${sbLabel}</span></div>
+      ${!processing && item.status!=='done'
+        ? `<button class="btn btn-ghost btn-sm" onclick="removeQueueItem(${item.id})" title="Remove">✕</button>` : ''}
+    </div>`;
   }).join('');
 }
 
-function renderQueueItemBody(item) {
-  const d = item.extracted;
-  return `
-    <div class="queue-item-body">
-      <div class="queue-item-fields">
-        <div class="fg">
-          <label class="lbl">Date</label>
-          <input type="date" class="fc" value="${esc(d.date||'')}"
-            onchange="updateQueueField(${item.id},'date',this.value); checkQueueDateWarning(${item.id},this.value)">
-          <div id="datewarn_${item.id}" class="hint" style="color:var(--warning);display:none;">⚠ Before current month — check this date</div>
-        </div>
-        <div class="fg">
-          <label class="lbl">Supplier</label>
-          <input type="text" class="fc" value="${esc(d.supplier||'')}"
-            oninput="updateQueueField(${item.id},'supplier',this.value)">
-        </div>
-      </div>
-      <div class="fg">
-        <label class="lbl">Description</label>
-        <input type="text" class="fc" value="${esc(d.itemName||'')}"
-          oninput="updateQueueField(${item.id},'itemName',this.value)">
-      </div>
-      <div class="fg">
-        <label class="lbl">Reference</label>
-        <input type="text" class="fc" value="${esc(d.reference||'')}"
-          oninput="updateQueueField(${item.id},'reference',this.value)">
-      </div>
-      <div class="queue-item-amounts">
-        <div class="fg">
-          <label class="lbl">Ex GST</label>
-          <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" class="fc" value="${d.amountExGST||''}" step="0.01" min="0"
-            oninput="updateQueueField(${item.id},'amountExGST',parseFloat(this.value)||0); calcQueueGST(${item.id})"></div>
-        </div>
-        <div class="fg">
-          <label class="lbl">GST</label>
-          <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" class="fc" value="${d.gstAmount||''}" step="0.01"
-            oninput="updateQueueField(${item.id},'gstAmount',parseFloat(this.value)||0)"></div>
-        </div>
-        <div class="fg">
-          <label class="lbl">Total</label>
-          <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" class="fc" value="${d.totalIncGST||''}" step="0.01"
-            oninput="updateQueueField(${item.id},'totalIncGST',parseFloat(this.value)||0)"></div>
-        </div>
-        <div class="fg">
-          <label class="lbl">Markup %</label>
-          <input type="number" class="fc" value="${item.markup != null ? item.markup : ''}" step="0.5" min="0" max="200" placeholder="—"
-            oninput="updateQueueMarkup(${item.id},this.value)">
-        </div>
-      </div>
-      <div class="queue-item-actions">
-        <button class="btn btn-secondary btn-sm" onclick="reExtract(${item.id})">↺ Re-extract</button>
-      </div>
-    </div>`;
-}
-
-function updateQueueField(id, field, value) {
-  const item = queue.find(i => i.id === id);
-  if (item) item.extracted[field] = value;
-}
-
-function updateQueueMarkup(id, value) {
-  const item = queue.find(i => i.id === id);
-  if (item) item.markup = value !== '' ? parseFloat(value) : null;
-}
-
-function calcQueueGST(id) {
-  const item = queue.find(i => i.id === id);
-  if (!item) return;
-  const ex = parseFloat(item.extracted.amountExGST) || 0;
-  item.extracted.gstAmount   = Math.round(ex * 0.10 * 100) / 100;
-  item.extracted.totalIncGST = Math.round((ex * 1.10) * 100) / 100;
-  // Update inputs in DOM without full re-render
-  const body = document.getElementById(`qitem_${id}`)?.querySelector('.queue-item-body');
-  if (body) {
-    const inputs = body.querySelectorAll('input[type="number"]');
-    // inputs[0]=exGST, [1]=gst, [2]=total, [3]=markup
-    if (inputs[1]) inputs[1].value = item.extracted.gstAmount.toFixed(2);
-    if (inputs[2]) inputs[2].value = item.extracted.totalIncGST.toFixed(2);
-  }
-}
-
-function checkQueueDateWarning(id, dateVal) {
-  const el = document.getElementById(`datewarn_${id}`);
-  if (!el || !dateVal) return;
-  const exp = new Date(dateVal);
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  el.style.display = exp < monthStart ? '' : 'none';
-}
-
-// ─── Also check date warning on initial render ───
-function initDateWarnings() {
-  queue.forEach(item => {
-    if ((item.status === 'ready' || item.status === 'error') && item.extracted.date) {
-      // Will be triggered after render via setTimeout
-      setTimeout(() => checkQueueDateWarning(item.id, item.extracted.date), 0);
-    }
-  });
-}
-
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // EXTRACTION
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 async function extractAll() {
-  if (!cfg.workerUrl) { showErr('s2_error', 'Worker URL not configured. Open Settings.'); return; }
-  const pending = queue.filter(i => i.status === 'pending');
-  if (!pending.length) return;
-
+  if (!cfg.workerUrl) { showErr('s2_error', 'Worker URL not configured.'); return; }
   document.getElementById('extractAllBtn').disabled = true;
-
-  // Sequential extraction to avoid hammering Gemini
-  for (const item of pending) {
+  for (const item of queue.filter(i => i.status==='pending')) {
     await extractItem(item);
   }
-
   renderQueueList();
-  initDateWarnings();
-}
-
-async function reExtract(id) {
-  const item = queue.find(i => i.id === id);
-  if (!item) return;
-  item.status = 'pending';
-  renderQueueList();
-  await extractItem(item);
-  renderQueueList();
-  initDateWarnings();
 }
 
 async function extractItem(item) {
-  item.status = 'extracting';
-  item.error = null;
-  // Update just this item's status badge without full re-render
-  const statusEl = document.getElementById(`qitem_${item.id}`)?.querySelector('.queue-item-status');
-  if (statusEl) { statusEl.textContent = 'Extracting…'; statusEl.className = 'queue-item-status status-extracting'; }
-
-  // Wait for b64 if not yet ready
+  item.status = 'extracting'; item.error = null;
+  renderQueueList();
   let waited = 0;
-  while (!item.b64 && waited < 5000) {
-    await new Promise(r => setTimeout(r, 100)); waited += 100;
-  }
-  if (!item.b64) { item.status = 'error'; item.error = 'Could not read file data.'; return; }
-
+  while (!item.b64 && waited<5000) { await sleep(100); waited+=100; }
+  if (!item.b64) { item.status='error'; item.error='Could not read file.'; return; }
   try {
     const res = await fetch(`${cfg.workerUrl}/extract`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mimeType: item.mimeType, data: item.b64 }),
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mimeType:item.mimeType, data:item.b64 }),
     });
-    const extracted = await res.json();
-    if (!res.ok || extracted.error) throw new Error(extracted.error || `Worker error ${res.status}`);
+    const data = await res.json();
+    if (!res.ok||data.error) throw new Error(data.error||`Worker error ${res.status}`);
     item.extracted = {
-      date:        extracted.date        || today(),
-      supplier:    extracted.supplier    || '',
-      itemName:    extracted.itemName    || '',
-      reference:   extracted.reference   || '',
-      amountExGST: extracted.amountExGST ?? '',
-      gstAmount:   extracted.gstAmount   ?? '',
-      totalIncGST: extracted.totalIncGST ?? '',
+      date:        data.date        || today(),
+      supplier:    data.supplier    || '',
+      itemName:    data.itemName    || '',
+      reference:   data.reference   || '',
+      amountExGST: data.amountExGST ?? '',
+      gstAmount:   data.gstAmount   ?? '',
+      totalIncGST: data.totalIncGST ?? '',
     };
     item.status = 'ready';
   } catch (err) {
-    item.status = 'error';
-    item.error = err.message;
+    item.status = 'error'; item.error = err.message;
+    await sleep(300); return;
   }
-
-  // Small rate-limit buffer between Gemini calls
-  await new Promise(r => setTimeout(r, 300));
+  // Auto-check company immediately after extraction
+  await checkCompany(item);
+  await sleep(300);
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// COMPANY VALIDATION
+// ═══════════════════════════════════════════════════════════════
+async function checkCompany(item) {
+  const name = item.extracted?.supplier?.trim();
+  if (!name || !cfg.workerUrl) return;
+  item.company = { status:'checking', matchedId:null, matchedName:null, similar:[], chosenId:null, chosenName:null, errorMsg:null };
+  try {
+    const res = await fetch(`${cfg.workerUrl}/companies/search`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ query: name }),
+    });
+    if (!res.ok) throw new Error(`Search error ${res.status}`);
+    const data = await res.json();
+    const results = data.results || [];
+
+    if (!results.length) { item.company.status='notfound'; return; }
+
+    const exact = results.find(r => r.name?.toLowerCase()===name.toLowerCase());
+    if (exact) {
+      item.company = { status:'matched', matchedId:exact.id, matchedName:exact.name, similar:[], chosenId:exact.id, chosenName:exact.name, errorMsg:null };
+      return;
+    }
+    item.company.status  = 'similar';
+    item.company.similar = results.slice(0,5);
+  } catch (err) {
+    item.company.status   = 'error';
+    item.company.errorMsg = err.message;
+  }
+}
+
+async function checkCompanyForItem(itemId) {
+  const item = queue.find(i => i.id===itemId);
+  if (!item) return;
+  const supplierEl = document.getElementById(`r_supplier_${itemId}`);
+  if (supplierEl) item.extracted.supplier = supplierEl.value.trim();
+  item.company = null;
+  refreshReviewCard(item);
+  await checkCompany(item);
+  refreshReviewCard(item);
+  renderQueueList();
+}
+
+async function createCompany(itemId, name) {
+  const item = queue.find(i => i.id===itemId);
+  if (!item) return;
+  const btn = document.getElementById(`co_create_${itemId}`);
+  if (btn) { btn.disabled=true; btn.textContent='Creating…'; }
+  try {
+    const res = await fetch(`${cfg.workerUrl}/companies/create`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message||data.error||`Error ${res.status}`);
+    item.company = { status:'created', matchedId:data.id, matchedName:data.name||name, similar:[], chosenId:data.id, chosenName:data.name||name, errorMsg:null };
+    refreshReviewCard(item); renderQueueList();
+  } catch (err) {
+    if (btn) { btn.disabled=false; btn.textContent=`✚ Create "${name}"`; }
+    alert(`Failed to create company: ${err.message}`);
+  }
+}
+
+function useCompany(itemId, companyId, companyName) {
+  const item = queue.find(i => i.id===itemId);
+  if (!item) return;
+  item.company = { status:'matched', matchedId:companyId, matchedName:companyName, similar:[], chosenId:companyId, chosenName:companyName, errorMsg:null };
+  refreshReviewCard(item); renderQueueList();
+}
+
+async function revalidateCompany(item) {
+  const name = item.extracted?.supplier?.trim();
+  if (!name) return false;
+  const co = item.company;
+  if ((co?.status==='matched'||co?.status==='created') && co.chosenName?.toLowerCase()===name.toLowerCase()) return true;
+  await checkCompany(item);
+  return item.company?.status==='matched'||item.company?.status==='created';
+}
+
+// ═══════════════════════════════════════════════════════════════
 // STEP 3 — REVIEW LIST
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function renderReviewList() {
   const container = document.getElementById('s3_reviewList');
-  const reviewable = queue.filter(i => i.status === 'ready' || i.status === 'done' || i.status === 'error');
-
+  const reviewable = queue.filter(i => ['ready','done','error'].includes(i.status));
   if (!reviewable.length) {
-    container.innerHTML = '<div class="alert alert-warning">No extracted expenses to review. Go back and extract receipts first.</div>';
+    container.innerHTML = '<div class="alert alert-warning">No extracted expenses to review.</div>';
     return;
   }
-
-  container.innerHTML = reviewable.map(item => {
-    const d = item.extracted;
-    const isPdf = item.mimeType === 'application/pdf';
-    const fn = getFilenameForItem(item);
-
-    // Date warning check
-    let dateWarnHtml = '';
-    if (d.date) {
-      const exp = new Date(d.date);
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      if (exp < monthStart) {
-        dateWarnHtml = `<div class="alert alert-warning" style="margin-top:8px;margin-bottom:0;">⚠️ This date is before the current month — please double-check before submitting.</div>`;
-      }
-    }
-
-    return `
-      <div class="card" style="margin-bottom:14px;border:1px solid var(--g200);" id="review_${item.id}">
-        <div class="card-hdr" style="background:var(--g50);">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:18px;">${isPdf ? '📄' : '🖼️'}</span>
-            <div>
-              <div style="font-size:13px;font-weight:600;">${esc(item.file.name)}</div>
-              <div style="font-size:11px;color:var(--g500);">${fmtSize(item.file.size)}</div>
-            </div>
-          </div>
-          <span class="queue-item-status status-${item.status}">${{ready:'Ready',done:'Submitted',error:'Error'}[item.status]||item.status}</span>
-        </div>
-        <div class="card-body">
-          ${dateWarnHtml}
-          <div class="row2" style="margin-top:${dateWarnHtml?'12px':'0'};">
-            <div class="fg">
-              <label class="lbl">Date <span class="req">*</span></label>
-              <input type="date" id="r_date_${item.id}" class="fc" value="${esc(d.date||'')}"
-                onchange="updateReviewField(${item.id},'date',this.value)">
-            </div>
-            <div class="fg">
-              <label class="lbl">Supplier <span class="req">*</span></label>
-              <input type="text" id="r_supplier_${item.id}" class="fc" value="${esc(d.supplier||'')}"
-                oninput="updateReviewField(${item.id},'supplier',this.value)">
-            </div>
-          </div>
-          <div class="fg">
-            <label class="lbl">Description <span class="req">*</span></label>
-            <input type="text" id="r_itemName_${item.id}" class="fc" value="${esc(d.itemName||'')}"
-              oninput="updateReviewField(${item.id},'itemName',this.value)">
-          </div>
-          <div class="fg">
-            <label class="lbl">Reference</label>
-            <input type="text" id="r_reference_${item.id}" class="fc" value="${esc(d.reference||'')}"
-              oninput="updateReviewField(${item.id},'reference',this.value)">
-          </div>
-          <div class="row3">
-            <div class="fg">
-              <label class="lbl">Cost Ex GST <span class="req">*</span></label>
-              <div class="pfx"><span class="pfx-lbl">$</span>
-              <input type="number" id="r_exGST_${item.id}" class="fc" value="${d.amountExGST||''}" step="0.01" min="0"
-                oninput="updateReviewField(${item.id},'amountExGST',parseFloat(this.value)||0); calcReviewGST(${item.id})"></div>
-            </div>
-            <div class="fg">
-              <label class="lbl">GST (10%)</label>
-              <div class="pfx"><span class="pfx-lbl">$</span>
-              <input type="number" id="r_gst_${item.id}" class="fc" value="${d.gstAmount||''}" step="0.01"
-                oninput="updateReviewField(${item.id},'gstAmount',parseFloat(this.value)||0)"></div>
-            </div>
-            <div class="fg">
-              <label class="lbl">Total Inc GST</label>
-              <div class="pfx"><span class="pfx-lbl">$</span>
-              <input type="number" id="r_total_${item.id}" class="fc" value="${d.totalIncGST||''}" step="0.01"
-                oninput="updateReviewField(${item.id},'totalIncGST',parseFloat(this.value)||0)"></div>
-            </div>
-          </div>
-          <div class="fg">
-            <label class="lbl">Markup % <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to pass cost through)</span></label>
-            <input type="number" id="r_markup_${item.id}" class="fc" value="${item.markup != null ? item.markup : ''}" placeholder="e.g. 15" style="max-width:110px;" min="0" max="200" step="0.5"
-              oninput="updateReviewMarkup(${item.id},this.value)">
-          </div>
-          <div class="fg">
-            <label class="lbl">Drive Filename</label>
-            <div class="fname-box" id="r_fname_${item.id}">${esc(fn || '—')}</div>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
+  container.innerHTML = reviewable.map(buildReviewCard).join('');
 }
 
+function refreshReviewCard(item) {
+  const el = document.getElementById(`review_${item.id}`);
+  if (el) el.outerHTML = buildReviewCard(item);
+}
+
+function buildReviewCard(item) {
+  const d = item.extracted;
+  const isPdf = item.mimeType==='application/pdf';
+  const fn = getFilenameForItem(item);
+
+  // Date warning
+  let dateWarn = '';
+  if (d.date) {
+    const exp = new Date(d.date);
+    const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    if (exp < monthStart) dateWarn = `<div class="alert alert-warning" style="margin-bottom:12px;">⚠️ Date is before the current month — double-check before submitting.</div>`;
+  }
+
+  const statusClass = { ready:'sb-ready', done:'sb-done', error:'sb-error' }[item.status]||'sb-pending';
+  const statusLabel = { ready:'Ready', done:'Submitted', error:'Error' }[item.status]||item.status;
+
+  return `<div class="card" style="margin-bottom:14px;" id="review_${item.id}">
+    <div class="card-hdr" style="background:var(--g50);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">${isPdf?'📄':'🖼️'}</span>
+        <div><div style="font-size:13px;font-weight:600;">${esc(item.file.name)}</div><div style="font-size:11px;color:var(--g500);">${fmtSize(item.file.size)}</div></div>
+      </div>
+      <span class="sbadge ${statusClass}">${statusLabel}</span>
+    </div>
+    <div class="card-body">
+      ${dateWarn}
+      <div class="row2">
+        <div class="fg">
+          <label class="lbl">Date <span class="req">*</span></label>
+          <input type="date" id="r_date_${item.id}" class="fc" value="${esc(d.date||'')}"
+            onchange="updateReviewField(${item.id},'date',this.value)">
+        </div>
+        <div class="fg">
+          <label class="lbl">Supplier <span class="req">*</span></label>
+          <input type="text" id="r_supplier_${item.id}" class="fc" value="${esc(d.supplier||'')}"
+            oninput="updateReviewField(${item.id},'supplier',this.value)">
+          <div class="co-block">${buildCompanyBlock(item)}</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="lbl">Description <span class="req">*</span></label>
+        <input type="text" id="r_itemName_${item.id}" class="fc" value="${esc(d.itemName||'')}"
+          oninput="updateReviewField(${item.id},'itemName',this.value)">
+      </div>
+      <div class="fg">
+        <label class="lbl">Reference</label>
+        <input type="text" id="r_reference_${item.id}" class="fc" value="${esc(d.reference||'')}"
+          oninput="updateReviewField(${item.id},'reference',this.value)">
+      </div>
+      <div class="row3">
+        <div class="fg">
+          <label class="lbl">Cost Ex GST <span class="req">*</span></label>
+          <div class="pfx"><span class="pfx-lbl">$</span>
+          <input type="number" id="r_exGST_${item.id}" class="fc" value="${d.amountExGST||''}" step="0.01" min="0"
+            oninput="updateReviewField(${item.id},'amountExGST',parseFloat(this.value)||0);calcReviewGST(${item.id})"></div>
+        </div>
+        <div class="fg">
+          <label class="lbl">GST (10%)</label>
+          <div class="pfx"><span class="pfx-lbl">$</span>
+          <input type="number" id="r_gst_${item.id}" class="fc" value="${d.gstAmount||''}" step="0.01"
+            oninput="updateReviewField(${item.id},'gstAmount',parseFloat(this.value)||0)"></div>
+        </div>
+        <div class="fg">
+          <label class="lbl">Total Inc GST</label>
+          <div class="pfx"><span class="pfx-lbl">$</span>
+          <input type="number" id="r_total_${item.id}" class="fc" value="${d.totalIncGST||''}" step="0.01"
+            oninput="updateReviewField(${item.id},'totalIncGST',parseFloat(this.value)||0)"></div>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="lbl">Markup % <span style="font-weight:400;text-transform:none;letter-spacing:0;">(leave blank to pass cost through)</span></label>
+        <input type="number" id="r_markup_${item.id}" class="fc" value="${item.markup!=null?item.markup:''}"
+          placeholder="e.g. 15" style="max-width:110px;" min="0" max="200" step="0.5"
+          oninput="updateReviewMarkup(${item.id},this.value)">
+      </div>
+      <div class="fg">
+        <label class="lbl">Drive Filename</label>
+        <div class="fname-box" id="r_fname_${item.id}">${esc(fn||'—')}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildCompanyBlock(item) {
+  const co = item.company;
+  if (!co) return '';
+
+  if (co.status==='checking')
+    return `<div class="co-row loading"><span class="spin" style="width:12px;height:12px;border-width:2px;"></span> Checking company in Streamtime…</div>`;
+  if (co.status==='matched')
+    return `<div class="co-row ok">✓ Matched: <strong style="margin-left:4px;">${esc(co.matchedName)}</strong></div>`;
+  if (co.status==='created')
+    return `<div class="co-row ok">✓ Created new company: <strong style="margin-left:4px;">${esc(co.matchedName)}</strong></div>`;
+  if (co.status==='error')
+    return `<div class="co-row warn">⚠ Company check failed: ${esc(co.errorMsg||'unknown error')}</div>`;
+
+  const supplierName = item.extracted?.supplier?.trim()||'';
+  const safeSupplier = esc(supplierName).replace(/'/g,"\\'");
+
+  if (co.status==='notfound') return `
+    <div class="co-row warn">⚠ <strong>${esc(supplierName)}</strong> not found in Streamtime</div>
+    <div class="co-actions">
+      <button class="btn btn-warning btn-sm" id="co_create_${item.id}"
+        onclick="createCompany(${item.id},'${safeSupplier}')">✚ Create company</button>
+      <button class="btn btn-secondary btn-sm" onclick="checkCompanyForItem(${item.id})">↺ Re-check</button>
+    </div>`;
+
+  if (co.status==='similar') {
+    const rows = co.similar.map(r => `
+      <div class="co-similar-item" onclick="useCompany(${item.id},${r.id},'${esc(String(r.name)).replace(/'/g,"\\'")}')">
+        <span class="co-similar-name">${esc(r.name)}</span>
+        <span style="color:var(--brand);font-size:11px;font-weight:600;">Use →</span>
+      </div>`).join('');
+    return `
+      <div class="co-row warn">⚠ No exact match for <strong>${esc(supplierName)}</strong>. Select a match or create:</div>
+      <div class="co-similar-list">${rows}</div>
+      <div class="co-actions">
+        <button class="btn btn-warning btn-sm" id="co_create_${item.id}"
+          onclick="createCompany(${item.id},'${safeSupplier}')">✚ Create "${esc(supplierName)}"</button>
+        <button class="btn btn-secondary btn-sm" onclick="checkCompanyForItem(${item.id})">↺ Re-check</button>
+      </div>`;
+  }
+  return '';
+}
+
+// ── Review field helpers ──
 function updateReviewField(id, field, value) {
-  const item = queue.find(i => i.id === id);
+  const item = queue.find(i => i.id===id);
   if (!item) return;
   item.extracted[field] = value;
-  // Update filename preview
-  const fn = getFilenameForItem(item);
-  setText(`r_fname_${id}`, fn || '—');
+  setText(`r_fname_${id}`, getFilenameForItem(item)||'—');
+  // If supplier was edited, reset company state so user re-verifies
+  if (field==='supplier' && item.company && !['notfound','similar'].includes(item.company.status)) {
+    item.company = null;
+    // Rebuild just the company block, not the whole card (avoids losing focus)
+    const coBlock = document.querySelector(`#review_${id} .co-block`);
+    if (coBlock) coBlock.innerHTML = '';
+  }
 }
-
 function updateReviewMarkup(id, value) {
-  const item = queue.find(i => i.id === id);
-  if (item) item.markup = value !== '' ? parseFloat(value) : null;
+  const item = queue.find(i => i.id===id);
+  if (item) item.markup = value!=='' ? parseFloat(value) : null;
 }
-
 function calcReviewGST(id) {
-  const item = queue.find(i => i.id === id);
+  const item = queue.find(i => i.id===id);
   if (!item) return;
-  const ex = parseFloat(item.extracted.amountExGST) || 0;
-  const gst   = Math.round(ex * 0.10 * 100) / 100;
-  const total = Math.round(ex * 1.10 * 100) / 100;
-  item.extracted.gstAmount   = gst;
-  item.extracted.totalIncGST = total;
-  const gstEl   = document.getElementById(`r_gst_${id}`);
-  const totalEl = document.getElementById(`r_total_${id}`);
-  if (gstEl)   gstEl.value   = gst.toFixed(2);
-  if (totalEl) totalEl.value = total.toFixed(2);
-  const fn = getFilenameForItem(item);
-  setText(`r_fname_${id}`, fn || '—');
+  const ex = parseFloat(item.extracted.amountExGST)||0;
+  const gst = Math.round(ex*0.10*100)/100;
+  const total = Math.round(ex*1.10*100)/100;
+  item.extracted.gstAmount = gst; item.extracted.totalIncGST = total;
+  const ge = document.getElementById(`r_gst_${id}`); const te = document.getElementById(`r_total_${id}`);
+  if (ge) ge.value = gst.toFixed(2); if (te) te.value = total.toFixed(2);
+  setText(`r_fname_${id}`, getFilenameForItem(item)||'—');
 }
 
-// ═══════════════════════════════════════════════════
-// FILENAME GENERATION
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// FILENAME
+// ═══════════════════════════════════════════════════════════════
 function getFilenameForItem(item) {
   const d = item.extracted;
-  if (!d.date || !d.supplier || d.totalIncGST == null || d.totalIncGST === '') return null;
-  const [y, m, day] = d.date.split('-');
+  if (!d.date||!d.supplier||d.totalIncGST==null||d.totalIncGST==='') return null;
+  const [y,m,day] = d.date.split('-');
   const fdate = `${day}.${m}.${(y||'').slice(2)}`;
-  const fsup  = (d.supplier || '').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '');
+  const fsup  = (d.supplier||'').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'');
   const amt   = parseFloat(d.totalIncGST).toFixed(2);
-  const jobCode = selectedJob?.num || selectedJob?.id || '';
-  const initials = cfg.initials || 'XX';
-  const ext = item.mimeType === 'application/pdf' ? '.pdf' : '.' + (item.file.name.split('.').pop() || 'jpg');
-  return `${fdate}_${fsup}_${initials}_${jobCode}_$${amt}${ext}`;
+  const jc    = selectedJob?.num||selectedJob?.id||'';
+  const ini   = cfg.initials||'XX';
+  const ext   = item.mimeType==='application/pdf' ? '.pdf' : '.'+( item.file.name.split('.').pop()||'jpg');
+  return `${fdate}_${fsup}_${ini}_${jc}_$${amt}${ext}`;
 }
 
-// ═══════════════════════════════════════════════════
-// GOOGLE DRIVE — PERSISTENT AUTH
-// ═══════════════════════════════════════════════════
-
-// Attempt silent re-auth using prior consent (no popup if user already granted)
+// ═══════════════════════════════════════════════════════════════
+// GOOGLE DRIVE — AUTH + MONTH FOLDERS
+// ═══════════════════════════════════════════════════════════════
 function trySilentDriveAuth() {
-  if (!cfg.gcid || !localStorage.getItem('driveAuthorised')) return;
-  updateDriveUI('connecting', 'Reconnecting…');
+  if (!cfg.gcid||!localStorage.getItem('driveAuthorised')) return;
+  updateDriveUI('connecting','Reconnecting…');
   const client = google.accounts.oauth2.initTokenClient({
-    client_id: cfg.gcid,
-    scope: 'https://www.googleapis.com/auth/drive.file',
+    client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive.file',
     callback: r => {
-      if (r.error) {
-        // Silent failed — clear the flag so user sees Connect button normally
-        localStorage.removeItem('driveAuthorised');
-        updateDriveUI('disconnected');
-        return;
-      }
-      driveToken = r.access_token;
-      localStorage.setItem('driveAuthorised', '1');
-      updateDriveUI('connected', '✓ Google Drive connected');
+      if (r.error) { localStorage.removeItem('driveAuthorised'); updateDriveUI('disconnected'); return; }
+      driveToken = r.access_token; localStorage.setItem('driveAuthorised','1');
+      updateDriveUI('connected','✓ Google Drive connected');
     }
   });
-  // prompt:'' = silent; will only work if consent was previously granted
-  client.requestAccessToken({ prompt: '' });
+  client.requestAccessToken({ prompt:'' });
 }
-
 function onDriveToggle() {
   const on = document.getElementById('driveToggle').checked;
   document.getElementById('driveAuthRow').classList.toggle('hidden', !on);
   if (on && !cfg.gcid) {
-    document.getElementById('driveToggle').checked = false;
+    document.getElementById('driveToggle').checked=false;
     document.getElementById('driveAuthRow').classList.add('hidden');
-    alert('Please configure your Google OAuth Client ID (set GOOGLE_CLIENT_ID in your Worker).');
+    alert('Google Client ID not configured in the Worker (GOOGLE_CLIENT_ID secret).');
     return;
   }
-  if (on && driveToken) {
-    updateDriveUI('connected', '✓ Google Drive connected');
-  } else if (on) {
-    updateDriveUI('disconnected');
-  }
+  if (on) updateDriveUI(driveToken?'connected':'disconnected', driveToken?'✓ Google Drive connected':undefined);
 }
-
 function authDrive() {
   if (!cfg.gcid) { alert('Google Client ID not configured.'); return; }
   const client = google.accounts.oauth2.initTokenClient({
-    client_id: cfg.gcid,
-    scope: 'https://www.googleapis.com/auth/drive.file',
+    client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive.file',
     callback: r => {
-      if (r.error) {
-        updateDriveUI('failed', '✗ Failed: ' + r.error);
-        return;
-      }
-      driveToken = r.access_token;
-      localStorage.setItem('driveAuthorised', '1');
-      updateDriveUI('connected', '✓ Google Drive connected');
+      if (r.error) { updateDriveUI('failed','✗ Failed: '+r.error); return; }
+      driveToken = r.access_token; localStorage.setItem('driveAuthorised','1');
+      updateDriveUI('connected','✓ Google Drive connected');
     }
   });
-  client.requestAccessToken({ prompt: 'select_account' });
+  client.requestAccessToken({ prompt:'select_account' });
 }
-
 function updateDriveUI(state, message) {
-  const bar = document.getElementById('driveStatusBar');
-  const txt = document.getElementById('driveStatusText');
-  const btn = document.getElementById('driveAuthBtn');
+  const bar=document.getElementById('driveStatusBar'), txt=document.getElementById('driveStatusText'), btn=document.getElementById('driveAuthBtn');
   if (!bar) return;
-
   bar.className = 'drive-status-bar';
-  if (state === 'connected') {
-    bar.classList.add('connected');
-    txt.textContent = message || '✓ Connected';
-    btn.textContent = '✓ Connected';
-    btn.disabled = true;
-  } else if (state === 'connecting') {
-    bar.classList.add('connecting');
-    txt.textContent = message || 'Connecting…';
-    btn.textContent = 'Connecting…';
-    btn.disabled = true;
-  } else if (state === 'failed') {
-    bar.classList.add('failed');
-    txt.textContent = message || 'Connection failed';
-    btn.textContent = '🔑 Try Again';
-    btn.disabled = false;
-  } else {
-    // disconnected
-    txt.textContent = 'Not connected';
-    btn.textContent = '🔑 Connect Google Account';
-    btn.disabled = false;
-  }
+  if (state==='connected')  { bar.classList.add('connected');  txt.textContent=message||'✓ Connected'; btn.textContent='✓ Connected'; btn.disabled=true; }
+  else if (state==='connecting') { bar.classList.add('connecting'); txt.textContent=message||'Connecting…'; btn.textContent='Connecting…'; btn.disabled=true; }
+  else if (state==='failed') { bar.classList.add('failed'); txt.textContent=message||'Failed'; btn.textContent='🔑 Try Again'; btn.disabled=false; }
+  else { txt.textContent='Not connected'; btn.textContent='🔑 Connect Google Account'; btn.disabled=false; }
 }
 
-async function driveUpload(file, filename) {
+// Month label: "2026-04-15" → "April 2026"
+function monthLabel(dateStr) {
+  if (!dateStr) return null;
+  const [y,m] = dateStr.split('-');
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${months[parseInt(m,10)-1]} ${y}`;
+}
+
+// Search for or create a Drive folder named monthLabel under the root folder
+async function getOrCreateMonthFolder(label) {
+  if (driveFolderCache[label]) return driveFolderCache[label];
+  const parentId = cfg.folderId||null;
+  let q = `mimeType='application/vnd.google-apps.folder' and name='${label}' and trashed=false`;
+  if (parentId) q += ` and '${parentId}' in parents`;
+
+  const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`,
+    { headers: { Authorization:`Bearer ${driveToken}` } });
+  if (!searchRes.ok) throw new Error(`Folder search failed ${searchRes.status}`);
+  const found = (await searchRes.json()).files||[];
+  if (found.length) { driveFolderCache[label]=found[0].id; return found[0].id; }
+
+  const meta = { name:label, mimeType:'application/vnd.google-apps.folder', ...(parentId?{parents:[parentId]}:{}) };
+  const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method:'POST', headers:{ Authorization:`Bearer ${driveToken}`, 'Content-Type':'application/json' },
+    body: JSON.stringify(meta),
+  });
+  if (!createRes.ok) throw new Error(`Folder creation failed ${createRes.status}`);
+  const created = await createRes.json();
+  driveFolderCache[label] = created.id;
+  return created.id;
+}
+
+async function driveUpload(file, filename, folderId) {
   if (!driveToken) throw new Error('Not authenticated with Google Drive.');
-  const meta = { name: filename, ...(cfg.folderId ? { parents: [cfg.folderId] } : {}) };
+  const meta = { name:filename, ...(folderId?{parents:[folderId]}:(cfg.folderId?{parents:[cfg.folderId]}:{})) };
   const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
+  form.append('metadata', new Blob([JSON.stringify(meta)], { type:'application/json' }));
   form.append('file', file, filename);
   const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${driveToken}` },
-    body: form
+    method:'POST', headers:{ Authorization:`Bearer ${driveToken}` }, body:form
   });
-  if (!r.ok) {
-    const e = await r.json().catch(() => ({}));
-    throw new Error(e.error?.message || `Drive error ${r.status}`);
-  }
+  if (!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e.error?.message||`Drive error ${r.status}`); }
   return r.json();
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // BULK SUBMIT
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 async function handleBulkSubmit() {
   const uploadDrive = document.getElementById('driveToggle').checked;
-  if (uploadDrive && !driveToken) {
-    showErr('s3_error', 'Google Drive is enabled but you haven\'t connected your account yet.');
-    return;
-  }
+  if (uploadDrive && !driveToken) { showErr('s3_error','Google Drive enabled but not connected.'); return; }
 
-  const toSubmit = queue.filter(i => i.status === 'ready');
-  if (!toSubmit.length) {
-    showErr('s3_error', 'No ready expenses to submit.'); return;
-  }
+  const toSubmit = queue.filter(i => i.status==='ready');
+  if (!toSubmit.length) { showErr('s3_error','No ready expenses to submit.'); return; }
 
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span> Submitting…';
-  document.getElementById('s3_error').classList.add('hidden');
-
-  // Collect latest field values from the review form before submitting
+  // Sync latest field values from the DOM
   toSubmit.forEach(item => {
-    const g = id => document.getElementById(id)?.value;
+    const g = id => document.getElementById(id)?.value ?? '';
     item.extracted.date        = g(`r_date_${item.id}`)     || item.extracted.date;
     item.extracted.supplier    = g(`r_supplier_${item.id}`) || item.extracted.supplier;
     item.extracted.itemName    = g(`r_itemName_${item.id}`) || item.extracted.itemName;
-    item.extracted.reference   = g(`r_reference_${item.id}`) || '';
-    item.extracted.amountExGST = parseFloat(g(`r_exGST_${item.id}`)) || item.extracted.amountExGST;
-    const rawMarkup = g(`r_markup_${item.id}`);
-    item.markup = rawMarkup !== '' && rawMarkup != null ? parseFloat(rawMarkup) : null;
+    item.extracted.reference   = g(`r_reference_${item.id}`);
+    item.extracted.amountExGST = parseFloat(g(`r_exGST_${item.id}`))||item.extracted.amountExGST;
+    const rm = g(`r_markup_${item.id}`);
+    item.markup = rm!=='' ? parseFloat(rm) : null;
   });
+
+  // Check for unresolved companies
+  const unresolved = toSubmit.filter(i => !['matched','created'].includes(i.company?.status));
+  if (unresolved.length) {
+    showErr('s3_error', `${unresolved.length} expense(s) have unresolved supplier companies. Resolve them above before submitting.`);
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> Submitting…';
+  document.getElementById('s3_error').classList.add('hidden');
+
+  // Re-validate companies (catches supplier name edits)
+  for (const item of toSubmit) {
+    const ok = await revalidateCompany(item);
+    if (!ok) refreshReviewCard(item);
+  }
+  const stillBad = toSubmit.filter(i => !['matched','created'].includes(i.company?.status));
+  if (stillBad.length) {
+    showErr('s3_error',`${stillBad.length} expense(s) still have unresolved companies.`);
+    btn.disabled=false; btn.innerHTML='✓ Submit All Expenses'; return;
+  }
 
   const results = [];
 
   for (const item of toSubmit) {
     item.status = 'submitting';
-    // Update card status badge
-    const statusEl = document.getElementById(`review_${item.id}`)?.querySelector('.queue-item-status');
-    if (statusEl) { statusEl.textContent = 'Submitting…'; statusEl.className = 'queue-item-status status-submitting'; }
-
     try {
       const d = item.extracted;
-      if (!d.date || !d.supplier || !d.itemName || isNaN(parseFloat(d.amountExGST))) {
+      if (!d.date||!d.supplier||!d.itemName||isNaN(parseFloat(d.amountExGST)))
         throw new Error('Date, Supplier, Description and Cost Ex GST are all required.');
-      }
 
-      const exGST   = parseFloat(d.amountExGST);
-      const markup  = item.markup;
-      const sellRate = markup ? Math.round(exGST * (1 + markup / 100) * 100) / 100 : exGST;
+      const exGST    = parseFloat(d.amountExGST);
+      const markup   = item.markup;
+      const sellRate = markup ? Math.round(exGST*(1+markup/100)*100)/100 : exGST;
 
-      const payload = {
-        loggedExpense: {
+      const stRes = await fetch(`${cfg.workerUrl}/expenses`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ loggedExpense: {
           jobId:               parseInt(selectedJob.id),
           date:                d.date,
           company:             d.supplier,
@@ -1359,134 +1079,102 @@ async function handleBulkSubmit() {
           costRate:            exGST,
           sellRate,
           quantity:            1,
-          itemPricingMethodId: markup !== null ? 2 : 1,
+          itemPricingMethodId: markup!==null ? 2 : 1,
           loggedExpenseStatusId: 2,
-          currencyCode: 'AUD',
-          exchangeRate: 1,
+          currencyCode: 'AUD', exchangeRate: 1,
           description: `Created by ${cfg.initials}`,
-          ...(d.reference ? { reference: d.reference } : {}),
-          ...(markup !== null ? { markup } : {}),
-        }
-      };
-
-      const stRes = await fetch(`${cfg.workerUrl}/expenses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+          ...(d.reference ? {reference:d.reference} : {}),
+          ...(markup!==null ? {markup} : {}),
+        }})
       });
+      if (!stRes.ok) { const e=await stRes.json().catch(()=>({})); throw new Error(`Streamtime ${stRes.status}: ${e.message||JSON.stringify(e).slice(0,200)}`); }
+      await stRes.json();
 
-      if (!stRes.ok) {
-        const e = await stRes.json().catch(() => ({}));
-        throw new Error(`Streamtime ${stRes.status}: ${e.message || JSON.stringify(e).slice(0, 200)}`);
-      }
-
-      const stData = await stRes.json();
-
-      // Drive upload
-      let driveFile = null;
+      // Drive upload into month folder
+      let driveFileId = null;
       if (uploadDrive && item.file) {
-        const fn = getFilenameForItem(item) || item.file.name;
-        driveFile = await driveUpload(item.file, fn);
-        if (driveFile?.id) item.driveFileId = driveFile.id;
+        const fn = getFilenameForItem(item)||item.file.name;
+        const ml = monthLabel(d.date);
+        let folderId = null;
+        if (ml) { try { folderId = await getOrCreateMonthFolder(ml); } catch(e) { console.warn('Month folder:', e.message); } }
+        const df = await driveUpload(item.file, fn, folderId);
+        driveFileId = df?.id||null;
+        if (driveFileId) item.driveFileId = driveFileId;
       }
 
       item.status = 'done';
-      results.push({ item, ok: true, stId: stData?.id, driveFileId: driveFile?.id });
+      results.push({ item, ok:true, driveFileId });
 
     } catch (err) {
-      item.status = 'error';
-      item.error = err.message;
-      results.push({ item, ok: false, error: err.message });
+      item.status='error'; item.error=err.message;
+      results.push({ item, ok:false, error:err.message });
     }
-
-    // Small buffer between requests
-    await new Promise(r => setTimeout(r, 300));
+    await sleep(300);
   }
 
-  // Show results
-  const successCount = results.filter(r => r.ok).length;
-  const failCount    = results.filter(r => !r.ok).length;
-
-  setText('successHeading', successCount === 1 ? 'Expense Logged!' : `${successCount} Expenses Logged!`);
+  // Results
+  const successCount = results.filter(r=>r.ok).length;
+  const failCount    = results.filter(r=>!r.ok).length;
+  setText('successHeading', successCount===1 ? 'Expense Logged!' : `${successCount} Expenses Logged!`);
   document.getElementById('successMsg').innerHTML =
-    `Logged to <strong>${esc(selectedJob.full || selectedJob.name)}</strong>.` +
-    (failCount ? ` <span style="color:var(--error);">${failCount} failed — see below.</span>` : '');
+    `Logged to <strong>${esc(selectedJob.full||selectedJob.name)}</strong>.` +
+    (failCount ? ` <span style="color:var(--error);">${failCount} failed.</span>` : '');
 
-  const resultList = document.getElementById('bulkResultList');
-  resultList.innerHTML = results.map(r => {
+  document.getElementById('bulkResultList').innerHTML = results.map(r => {
     if (r.ok) {
+      const ml = monthLabel(r.item.extracted.date);
       return `<div class="bulk-result-item ok">
         <div class="bulk-result-icon">✓</div>
         <div>
           <div class="bulk-result-name">${esc(r.item.file.name)}</div>
-          <div class="bulk-result-detail">${r.item.extracted.supplier} · $${parseFloat(r.item.extracted.amountExGST).toFixed(2)} ex GST${r.driveFileId ? ' · Saved to Drive' : ''}</div>
+          <div class="bulk-result-detail">${esc(r.item.extracted.supplier)} · $${parseFloat(r.item.extracted.amountExGST).toFixed(2)} ex GST${r.driveFileId?` · Drive: ${ml}`:''}${r.item.company?.status==='created'?' · New company created':''}</div>
         </div>
-        ${r.driveFileId ? `<a href="https://drive.google.com/file/d/${r.driveFileId}/view" target="_blank" class="btn btn-secondary btn-sm" style="margin-left:auto;">Drive ↗</a>` : ''}
-      </div>`;
-    } else {
-      return `<div class="bulk-result-item err">
-        <div class="bulk-result-icon">✗</div>
-        <div>
-          <div class="bulk-result-name">${esc(r.item.file.name)}</div>
-          <div class="bulk-result-detail">${esc(r.error)}</div>
-        </div>
+        ${r.driveFileId?`<a href="https://drive.google.com/file/d/${r.driveFileId}/view" target="_blank" class="btn btn-secondary btn-sm" style="margin-left:auto;">Drive ↗</a>`:''}
       </div>`;
     }
+    return `<div class="bulk-result-item err">
+      <div class="bulk-result-icon">✗</div>
+      <div><div class="bulk-result-name">${esc(r.item.file.name)}</div><div class="bulk-result-detail">${esc(r.error)}</div></div>
+    </div>`;
   }).join('');
 
-  const linksEl = document.getElementById('successLinks');
-  linksEl.innerHTML = `<a href="https://app.streamtime.net" target="_blank" class="btn btn-secondary">Open Streamtime →</a>`;
-
+  document.getElementById('successLinks').innerHTML =
+    `<a href="https://app.streamtime.net" target="_blank" class="btn btn-secondary">Open Streamtime →</a>`;
   setStep(4);
-  btn.disabled = false;
-  btn.innerHTML = '✓ Submit All Expenses';
+  btn.disabled=false; btn.innerHTML='✓ Submit All Expenses';
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // RESET
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function reset() {
-  selectedJob = null;
-  queue = [];
-  nextQueueId = 1;
-  // Note: driveToken is intentionally NOT reset — persists for the session
-
-  document.getElementById('driveToggle').checked = false;
+  selectedJob=null; queue=[]; nextQueueId=1;
+  // driveToken kept — persists within session
+  document.getElementById('driveToggle').checked=false;
   document.getElementById('driveAuthRow').classList.add('hidden');
   document.getElementById('s1_actions').classList.add('hidden');
-  document.querySelectorAll('.job-item').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.job-item').forEach(el=>el.classList.remove('selected'));
   document.getElementById('s3_notice').classList.remove('hidden');
   document.getElementById('s3_error').classList.add('hidden');
   document.getElementById('queueWrap').classList.add('hidden');
-  document.getElementById('queueList').innerHTML = '';
-  document.getElementById('s3_reviewList').innerHTML = '';
-  document.getElementById('bulkResultList').innerHTML = '';
-  document.getElementById('extractAllBtn').disabled = true;
-  document.getElementById('proceedBtn').disabled = true;
-  document.getElementById('fileInput').value = '';
-
+  document.getElementById('queueList').innerHTML='';
+  document.getElementById('s3_reviewList').innerHTML='';
+  document.getElementById('bulkResultList').innerHTML='';
+  document.getElementById('extractAllBtn').disabled=true;
+  document.getElementById('proceedBtn').disabled=true;
+  document.getElementById('fileInput').value='';
   setStep(1);
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // UTILS
-// ═══════════════════════════════════════════════════
-function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
-function num(v)  { return (v != null && !isNaN(v)) ? parseFloat(v).toFixed(2) : ''; }
+// ═══════════════════════════════════════════════════════════════
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function setText(id,v) { const el=document.getElementById(id); if(el) el.textContent=v; }
 function today() { return new Date().toISOString().split('T')[0]; }
-function fmtSize(b) {
-  if (b < 1024) return b + ' B';
-  if (b < 1024**2) return (b/1024).toFixed(1) + ' KB';
-  return (b/1024**2).toFixed(1) + ' MB';
-}
-function showErr(id, msg) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = msg; el.classList.remove('hidden');
-}
+function sleep(ms) { return new Promise(r=>setTimeout(r,ms)); }
+function fmtSize(b) { if(b<1024)return b+' B'; if(b<1024**2)return (b/1024).toFixed(1)+' KB'; return (b/1024**2).toFixed(1)+' MB'; }
+function showErr(id,msg) { const el=document.getElementById(id); if(!el)return; el.innerHTML=msg; el.classList.remove('hidden'); }
 </script>
 </body>
 </html>
