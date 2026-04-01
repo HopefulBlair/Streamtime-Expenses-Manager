@@ -347,6 +347,7 @@
             <span id="driveStatusText">Not connected</span>
             <button class="btn btn-secondary btn-sm" id="driveAuthBtn" onclick="authDrive()" style="margin-left:auto;">🔑 Connect Google Account</button>
           </div>
+          <div class="hint" style="margin-top:5px;">If the Connect button does nothing, allow popups for this site in your browser's address bar, then try again.</div>
         </div>
       </div>
       <div id="s3_error" class="alert alert-error hidden" style="margin-top:14px;"></div>
@@ -867,47 +868,53 @@ function buildReviewCard(item) {
         <div class="hint">Pushed to Streamtime as the expense description</div>
       </div>
       <div class="fg">
-        <label class="lbl">Reference</label>
+        <label class="lbl">Reference <span class="req">*</span></label>
         <input type="text" id="r_reference_${item.id}" class="fc" value="${esc(d.reference||'')}"
           oninput="updateReviewField(${item.id},'reference',this.value)">
       </div>
-      <div class="row3">
-        <div class="fg">
+      <div class="row3" style="align-items:end;">
+        <div class="fg" style="margin-bottom:0;">
           <label class="lbl">Cost Ex GST <span class="req">*</span></label>
           <div class="pfx"><span class="pfx-lbl">$</span>
           <input type="number" id="r_exGST_${item.id}" class="fc" value="${exGST||''}" step="0.01" min="0"
             oninput="updateReviewField(${item.id},'amountExGST',parseFloat(this.value)||0);calcReviewGST(${item.id})"></div>
         </div>
-        <div class="fg">
-          <label class="lbl">GST %</label>
-          <div class="pfx"><span class="pfx-lbl">%</span>
-          <input type="number" id="r_gstpct_${item.id}" class="fc" value="${gstPct}" step="1" min="0" max="100"
-            oninput="updateReviewGstPct(${item.id},this.value)"></div>
+        <div class="fg" style="margin-bottom:0;">
+          <label class="lbl">GST <span class="req">*</span></label>
+          <div class="pfx">
+            <span class="pfx-lbl">$</span>
+            <input type="number" id="r_gst_${item.id}" class="fc" value="${gstAmt||''}" step="0.01" readonly
+              style="background:var(--g50);color:var(--g500);border-radius:0;">
+            <span class="pfx-lbl" style="border-left:none;border-radius:0;">
+              <input type="number" id="r_gstpct_${item.id}" style="width:42px;border:none;background:transparent;font-size:12px;color:var(--g600);font-weight:600;padding:0;outline:none;text-align:right;" value="${gstPct}" step="1" min="0" max="100"
+                oninput="updateReviewGstPct(${item.id},this.value)">%
+            </span>
+          </div>
         </div>
-        <div class="fg">
-          <label class="lbl">GST Amount</label>
-          <div class="pfx"><span class="pfx-lbl">$</span>
-          <input type="number" id="r_gst_${item.id}" class="fc" value="${gstAmt||''}" step="0.01" readonly
-            style="background:var(--g50);color:var(--g500);"></div>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="fg">
+        <div class="fg" style="margin-bottom:0;">
           <label class="lbl">Total Inc GST</label>
           <div class="pfx"><span class="pfx-lbl">$</span>
           <input type="number" id="r_total_${item.id}" class="fc" value="${total||''}" step="0.01" readonly
             style="background:var(--g50);color:var(--g500);"></div>
         </div>
-        <div class="fg">
-          <label class="lbl">Markup %</label>
-          <input type="number" id="r_markup_${item.id}" class="fc" value="${markup}"
-            style="max-width:100%;" min="0" max="200" step="0.5"
-            oninput="updateReviewMarkup(${item.id},this.value)">
-        </div>
       </div>
-      <div class="final-sum" id="r_finalsum_${item.id}">
-        <span class="final-sum-label">Total inc. GST + ${markup}% markup</span>
-        <span class="final-sum-value">$${sellTotal.toFixed(2)}</span>
+      <div class="row3" style="align-items:end;margin-top:12px;">
+        <div class="fg" style="margin-bottom:0;">
+          <label class="lbl">Total + Markup <span class="req">*</span></label>
+          <div class="pfx"><span class="pfx-lbl">$</span>
+          <input type="number" id="r_selltotal_${item.id}" class="fc" value="${sellTotal.toFixed(2)}" step="0.01" readonly
+            style="background:var(--g50);color:var(--g500);font-weight:600;"></div>
+        </div>
+        <div class="fg" style="margin-bottom:0;">
+          <label class="lbl">Markup <span class="req">*</span></label>
+          <div class="pfx">
+            <input type="number" id="r_markup_${item.id}" class="fc" value="${markup}"
+              style="border-radius:var(--r) 0 0 var(--r);" min="0" max="200" step="0.5"
+              oninput="updateReviewMarkup(${item.id},this.value)">
+            <span class="pfx-lbl" style="border-left:none;border-radius:0 var(--r) var(--r) 0;">%</span>
+          </div>
+        </div>
+        <div></div>
       </div>
       <div class="fg" style="margin-top:14px;">
         <label class="lbl">Drive Filename</label>
@@ -1016,10 +1023,14 @@ function updateFinalSum(id) {
   const total = parseFloat(item.extracted.totalIncGST)||0;
   const markup = item.markup != null ? item.markup : 15;
   const sellTotal = Math.round(total * (1 + markup/100) * 100) / 100;
-  const el = document.getElementById(`r_finalsum_${id}`);
-  if (!el) return;
-  el.querySelector('.final-sum-label').textContent = `Total inc. GST + ${markup}% markup`;
-  el.querySelector('.final-sum-value').textContent = `$${sellTotal.toFixed(2)}`;
+  const el = document.getElementById(`r_selltotal_${id}`);
+  if (el) el.value = sellTotal.toFixed(2);
+  // Legacy finalsum (no longer rendered but guard anyway)
+  const fs = document.getElementById(`r_finalsum_${id}`);
+  if (fs) {
+    fs.querySelector('.final-sum-label').textContent = `Total inc. GST + ${markup}% markup`;
+    fs.querySelector('.final-sum-value').textContent = `$${sellTotal.toFixed(2)}`;
+  }
 }
 
 // ── Supplier combobox ──
@@ -1133,15 +1144,25 @@ function onDriveToggle() {
 }
 function authDrive() {
   if (!cfg.gcid) { alert('Google Client ID not configured.'); return; }
+  updateDriveUI('connecting', 'Connecting…');
   const client = google.accounts.oauth2.initTokenClient({
     client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive.file',
     callback: r => {
-      if (r.error) { updateDriveUI('failed','✗ Failed: '+r.error); return; }
+      if (r.error) {
+        updateDriveUI('failed', '✗ Failed: ' + r.error);
+        if (r.error === 'popup_closed_by_user' || r.error === 'access_denied') {
+          updateDriveUI('failed', '✗ Popup was blocked or closed. Allow popups for this site and try again.');
+        }
+        return;
+      }
       driveToken = r.access_token; localStorage.setItem('driveAuthorised','1');
       updateDriveUI('connected','✓ Google Drive connected');
     }
   });
-  client.requestAccessToken({ prompt:'select_account' });
+  // Use prompt:'' to reuse existing session without a popup when possible.
+  // If that fails (no session), requestAccessToken will open a popup — ensure
+  // the browser allows popups for this domain.
+  client.requestAccessToken({ prompt: '' });
 }
 function updateDriveUI(state, message) {
   const bar=document.getElementById('driveStatusBar'), txt=document.getElementById('driveStatusText'), btn=document.getElementById('driveAuthBtn');
@@ -1153,7 +1174,15 @@ function updateDriveUI(state, message) {
   else { txt.textContent='Not connected'; btn.textContent='🔑 Connect Google Account'; btn.disabled=false; }
 }
 
-// Month label: "2026-04-15" → "April 2026"
+// Australian Financial Year month label + index
+// FY runs July (month 7) = index 1 through June (month 6) = index 12
+function afyMonthIndex(dateStr) {
+  if (!dateStr) return null;
+  const m = parseInt(dateStr.split('-')[1], 10); // 1-12
+  // July=1, Aug=2, Sep=3, Oct=4, Nov=5, Dec=6, Jan=7, Feb=8, Mar=9, Apr=10, May=11, Jun=12
+  return m >= 7 ? m - 6 : m + 6;
+}
+
 function monthLabel(dateStr) {
   if (!dateStr) return null;
   const [y,m] = dateStr.split('-');
@@ -1161,27 +1190,54 @@ function monthLabel(dateStr) {
   return `${months[parseInt(m,10)-1]} ${y}`;
 }
 
-// Search for or create a Drive folder named monthLabel under the root folder
-async function getOrCreateMonthFolder(label) {
-  if (driveFolderCache[label]) return driveFolderCache[label];
-  const parentId = cfg.folderId||null;
-  let q = `mimeType='application/vnd.google-apps.folder' and name='${label}' and trashed=false`;
+function afyFolderName(dateStr) {
+  if (!dateStr) return null;
+  const idx = afyMonthIndex(dateStr);
+  const label = monthLabel(dateStr);
+  if (!idx || !label) return null;
+  return `${idx} ${label}`;
+}
+
+// Search for or create a Drive folder using AFY index prefix under the root folder
+async function getOrCreateMonthFolder(dateStr) {
+  const folderName = afyFolderName(dateStr);
+  if (!folderName) return null;
+
+  if (driveFolderCache[folderName]) return driveFolderCache[folderName];
+
+  const parentId = cfg.folderId || null;
+
+  // Search by exact name first
+  let q = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
   if (parentId) q += ` and '${parentId}' in parents`;
 
   const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)`,
-    { headers: { Authorization:`Bearer ${driveToken}` } });
+    { headers: { Authorization: `Bearer ${driveToken}` } });
   if (!searchRes.ok) throw new Error(`Folder search failed ${searchRes.status}`);
-  const found = (await searchRes.json()).files||[];
-  if (found.length) { driveFolderCache[label]=found[0].id; return found[0].id; }
+  const found = (await searchRes.json()).files || [];
+  if (found.length) { driveFolderCache[folderName] = found[0].id; return found[0].id; }
 
-  const meta = { name:label, mimeType:'application/vnd.google-apps.folder', ...(parentId?{parents:[parentId]}:{}) };
+  // Also try searching by index prefix in case folder was created with a different label
+  const idxPrefix = String(afyMonthIndex(dateStr));
+  let q2 = `mimeType='application/vnd.google-apps.folder' and name contains '${idxPrefix} ' and trashed=false`;
+  if (parentId) q2 += ` and '${parentId}' in parents`;
+  const searchRes2 = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q2)}&fields=files(id,name)`,
+    { headers: { Authorization: `Bearer ${driveToken}` } });
+  if (searchRes2.ok) {
+    const found2 = (await searchRes2.json()).files || [];
+    const match = found2.find(f => f.name.startsWith(idxPrefix + ' '));
+    if (match) { driveFolderCache[folderName] = match.id; return match.id; }
+  }
+
+  // Create it
+  const meta = { name: folderName, mimeType: 'application/vnd.google-apps.folder', ...(parentId ? { parents: [parentId] } : {}) };
   const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-    method:'POST', headers:{ Authorization:`Bearer ${driveToken}`, 'Content-Type':'application/json' },
+    method: 'POST', headers: { Authorization: `Bearer ${driveToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(meta),
   });
   if (!createRes.ok) throw new Error(`Folder creation failed ${createRes.status}`);
   const created = await createRes.json();
-  driveFolderCache[label] = created.id;
+  driveFolderCache[folderName] = created.id;
   return created.id;
 }
 
@@ -1253,6 +1309,13 @@ async function handleBulkSubmit() {
       const d = item.extracted;
       if (!d.date||!d.supplier||!d.itemName||isNaN(parseFloat(d.amountExGST)))
         throw new Error('Date, Supplier, Description and Cost Ex GST are all required.');
+      if (!d.reference)
+        throw new Error('Reference is required.');
+      const markupVal = item.markup != null ? item.markup : null;
+      if (markupVal === null || isNaN(markupVal))
+        throw new Error('Markup % is required.');
+      if (isNaN(parseFloat(d.gstAmount)) && item.gstPct == null)
+        throw new Error('GST is required.');
 
       const exGST    = parseFloat(d.amountExGST);
       const markup   = item.markup != null ? item.markup : 15;
@@ -1281,13 +1344,12 @@ async function handleBulkSubmit() {
       if (!stRes.ok) { const e=await stRes.json().catch(()=>({})); throw new Error(`Streamtime ${stRes.status}: ${e.message||JSON.stringify(e).slice(0,200)}`); }
       await stRes.json();
 
-      // Drive upload into month folder
+      // Drive upload into AFY month folder
       let driveFileId = null;
       if (uploadDrive && item.file) {
         const fn = getFilenameForItem(item)||item.file.name;
-        const ml = monthLabel(d.date);
         let folderId = null;
-        if (ml) { try { folderId = await getOrCreateMonthFolder(ml); } catch(e) { console.warn('Month folder:', e.message); } }
+        if (d.date) { try { folderId = await getOrCreateMonthFolder(d.date); } catch(e) { console.warn('Month folder:', e.message); } }
         const df = await driveUpload(item.file, fn, folderId);
         driveFileId = df?.id||null;
         if (driveFileId) item.driveFileId = driveFileId;
@@ -1313,12 +1375,11 @@ async function handleBulkSubmit() {
 
   document.getElementById('bulkResultList').innerHTML = results.map(r => {
     if (r.ok) {
-      const ml = monthLabel(r.item.extracted.date);
       return `<div class="bulk-result-item ok">
         <div class="bulk-result-icon">✓</div>
         <div>
           <div class="bulk-result-name">${esc(r.item.file.name)}</div>
-          <div class="bulk-result-detail">${esc(r.item.extracted.supplier)} · $${parseFloat(r.item.extracted.amountExGST).toFixed(2)} ex GST${r.driveFileId?` · Drive: ${ml}`:''}${r.item.company?.status==='created'?' · New company created':''}</div>
+          <div class="bulk-result-detail">${esc(r.item.extracted.supplier)} · $${parseFloat(r.item.extracted.amountExGST).toFixed(2)} ex GST${r.driveFileId?` · Drive: ${afyFolderName(r.item.extracted.date)||monthLabel(r.item.extracted.date)}`:''}${r.item.company?.status==='created'?' · New company created':''}</div>
         </div>
         ${r.driveFileId?`<a href="https://drive.google.com/file/d/${r.driveFileId}/view" target="_blank" class="btn btn-secondary btn-sm" style="margin-left:auto;">Drive ↗</a>`:''}
       </div>`;
