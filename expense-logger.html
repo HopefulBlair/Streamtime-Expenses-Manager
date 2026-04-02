@@ -1116,7 +1116,7 @@ function trySilentDriveAuth() {
     }
     updateDriveUI('connecting', 'Reconnecting to Google Drive…');
     const client = google.accounts.oauth2.initTokenClient({
-      client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive.file',
+      client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive',
       callback: r => {
         if (r.error) { localStorage.removeItem('driveAuthorised'); updateDriveUI('disconnected'); return; }
         driveToken = r.access_token; localStorage.setItem('driveAuthorised', '1');
@@ -1146,7 +1146,7 @@ function authDrive() {
   if (!cfg.gcid) { alert('Google Client ID not configured.'); return; }
   updateDriveUI('connecting', 'Connecting…');
   const client = google.accounts.oauth2.initTokenClient({
-    client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive.file',
+    client_id: cfg.gcid, scope: 'https://www.googleapis.com/auth/drive',
     callback: r => {
       if (r.error) {
         updateDriveUI('failed', '✗ Failed: ' + r.error);
@@ -1226,7 +1226,8 @@ async function getOrCreateMonthFolder(dateStr) {
       return (await res.json()).files || [];
     }
 
-    // ── Search 1: exact name match inside the base folder ────────
+    // ── Search 1: exact name match, scoped strictly to the base folder ──
+    // Requires drive scope (not drive.file) to see pre-existing folders.
     if (parentId) {
       const q1 = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and '${parentId}' in parents and trashed=false`;
       const found = await searchFolders(q1);
@@ -1236,22 +1237,19 @@ async function getOrCreateMonthFolder(dateStr) {
       }
     }
 
-    // ── Search 2: index-prefix fallback (folder renamed but same month) ──
-    // Only searches within the base folder.
+    // ── Search 2: index-prefix fallback (e.g. folder was renamed), scoped to base folder ──
     const idxPrefix = String(afyMonthIndex(dateStr));
-    // Use 'name contains' but filter client-side with startsWith to avoid
-    // false positives like "18. January" matching prefix "8"
-    let q2 = `mimeType='application/vnd.google-apps.folder' and name contains '${idxPrefix}. ' and trashed=false`;
-    if (parentId) q2 += ` and '${parentId}' in parents`;
-    const found2 = await searchFolders(q2).catch(() => []);
-    const prefixMatch = found2.find(f =>
-      f.name.startsWith(idxPrefix + '. ') || f.name.startsWith(idxPrefix + '.')
-    );
-    if (prefixMatch) {
-      driveFolderCache[folderName] = prefixMatch.id;
-      return prefixMatch.id;
+    if (parentId) {
+      const q2 = `mimeType='application/vnd.google-apps.folder' and name contains '${idxPrefix}. ' and '${parentId}' in parents and trashed=false`;
+      const found2 = await searchFolders(q2).catch(() => []);
+      const prefixMatch = found2.find(f =>
+        f.name.startsWith(idxPrefix + '. ') || f.name.startsWith(idxPrefix + '.')
+      );
+      if (prefixMatch) {
+        driveFolderCache[folderName] = prefixMatch.id;
+        return prefixMatch.id;
+      }
     }
-
     // ── No existing folder found — create it ──────────────────────
     const meta = {
       name: folderName,
