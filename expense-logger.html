@@ -1226,31 +1226,18 @@ async function getOrCreateMonthFolder(dateStr) {
       return (await res.json()).files || [];
     }
 
-    // ── Search 1a: exact name match inside the target parent ─────
+    // ── Search 1: exact name match inside the base folder ────────
     if (parentId) {
-      const q1a = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and '${parentId}' in parents and trashed=false`;
-      const found = await searchFolders(q1a);
+      const q1 = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and '${parentId}' in parents and trashed=false`;
+      const found = await searchFolders(q1);
       if (found.length) {
         driveFolderCache[folderName] = found[0].id;
         return found[0].id;
       }
     }
 
-    // ── Search 1b: exact name match anywhere in Drive ────────────
-    // (catches the case where cfg.folderId is wrong/empty but the folder exists)
-    const q1b = `mimeType='application/vnd.google-apps.folder' and name='${folderName}' and trashed=false`;
-    const foundAnywhere = await searchFolders(q1b);
-    // If parentId is set, prefer a folder that lives inside that parent;
-    // otherwise accept the first result.
-    const exactMatch = parentId
-      ? foundAnywhere.find(f => f.parents?.includes(parentId)) || foundAnywhere[0]
-      : foundAnywhere[0];
-    if (exactMatch) {
-      driveFolderCache[folderName] = exactMatch.id;
-      return exactMatch.id;
-    }
-
     // ── Search 2: index-prefix fallback (folder renamed but same month) ──
+    // Only searches within the base folder.
     const idxPrefix = String(afyMonthIndex(dateStr));
     // Use 'name contains' but filter client-side with startsWith to avoid
     // false positives like "18. January" matching prefix "8"
