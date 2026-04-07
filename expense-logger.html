@@ -216,6 +216,10 @@
     .step-ftr { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
     @media (max-width: 480px) { .step-ftr { flex-direction: column-reverse; } .step-ftr .btn { width: 100%; justify-content: center; } }
     .hidden { display: none !important; }
+    .card-hdr.collapsible { cursor: pointer; user-select: none; }
+    .card-hdr.collapsible:hover { background: var(--g100) !important; }
+    .chevron { font-size: 13px; color: var(--g400); display: inline-block; transition: transform .2s; line-height: 1; }
+    .chevron.is-collapsed { transform: rotate(-90deg); }
     .success-circle { width: 64px; height: 64px; background: var(--success-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px; }
     .bulk-result-list { display: flex; flex-direction: column; gap: 8px; margin: 16px 0; text-align: left; }
     .bulk-result-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--r); font-size: 13px; border: 1px solid var(--g200); background: var(--g50); }
@@ -834,14 +838,17 @@ function buildReviewCard(item) {
   </div>` : '';
 
   return `<div class="card" style="margin-bottom:14px;" id="review_${item.id}">
-    <div class="card-hdr" style="background:var(--g50);">
+    <div class="card-hdr collapsible" style="background:var(--g50);" onclick="toggleReviewCard(${item.id})">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:18px;">${isPdf?'📄':'🖼️'}</span>
         <div><div style="font-size:13px;font-weight:600;">${esc(item.file.name)}</div><div style="font-size:11px;color:var(--g500);">${fmtSize(item.file.size)}</div></div>
       </div>
-      <span class="sbadge ${statusClass}">${statusLabel}</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="sbadge ${statusClass}">${statusLabel}</span>
+        <span class="chevron" id="r_chevron_${item.id}">▾</span>
+      </div>
     </div>
-    <div class="card-body">
+    <div class="card-body" id="r_body_${item.id}">
       <div class="row2">
         <div class="fg">
           <label class="lbl">Date <span class="req">*</span></label>
@@ -967,6 +974,15 @@ function buildCompanyBlock(item) {
   return '';
 }
 
+// ── Review card collapse ──
+function toggleReviewCard(id) {
+  const body    = document.getElementById(`r_body_${id}`);
+  const chevron = document.getElementById(`r_chevron_${id}`);
+  if (!body) return;
+  const collapsed = body.classList.toggle('hidden');
+  if (chevron) chevron.classList.toggle('is-collapsed', collapsed);
+}
+
 // ── Review field helpers ──
 function checkDateWarn(id, dateVal) {
   const el = document.getElementById(`r_datewarn_${id}`);
@@ -1047,11 +1063,34 @@ function onSupplierInput(id, value) {
   rebuildSupplierDropdown(id, value);
   openSupplierDd(id);
 }
-function rebuildSupplierDropdown(id, filter) {
+async function rebuildSupplierDropdown(id, filter) {
   const dd = document.getElementById(`r_sdd_${id}`);
   if (!dd) return;
   const f = (filter||'').toLowerCase();
-  const matches = allCompanies.filter(c => !f || c.name.toLowerCase().includes(f)).slice(0,8);
+  let matches = allCompanies.filter(c => !f || c.name.toLowerCase().includes(f)).slice(0,8);
+
+  // If the user has typed something and there are no local matches, fall back to a
+  // live search against the worker so companies beyond the prefetch cap are still found.
+  if (f.length >= 2 && matches.length === 0 && cfg.workerUrl) {
+    dd.innerHTML = '<div class="supplier-opt" style="color:var(--g400);font-size:12px;padding:8px 11px;font-style:italic;">Searching…</div>';
+    try {
+      const res = await fetch(`${cfg.workerUrl}/companies/search`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: filter }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const remote = (data.results || []).slice(0, 8);
+        // Merge new results into local cache for future lookups
+        remote.forEach(m => { if (!allCompanies.some(c => c.id === m.id)) allCompanies.push(m); });
+        matches = remote;
+      }
+    } catch {}
+    // Abort if the input value has changed while we were waiting
+    const inputEl = document.getElementById(`r_supplier_${id}`);
+    if (!inputEl || inputEl.value.toLowerCase() !== f) return;
+  }
+
   const showNew = filter && !allCompanies.some(c => c.name.toLowerCase()===f);
   const opts = matches.map(c => `<div class="supplier-opt" onmousedown="selectSupplier(${id},'${esc(c.name).replace(/'/g,"\\'")}',${c.id})" data-id="${c.id}">
     <span class="supplier-opt-name">${esc(c.name)}</span>
@@ -1423,8 +1462,9 @@ async function handleBulkSubmit() {
     </div>`;
   }).join('');
 
+  const stJobUrl = `https://hopefulmonsters.app.streamtime.net/#jobs/${selectedJob.id}`;
   document.getElementById('successLinks').innerHTML =
-    `<a href="https://app.streamtime.net" target="_blank" class="btn btn-secondary">Open Streamtime →</a>`;
+    `<a href="${stJobUrl}" target="_blank" class="btn btn-secondary">View in Streamtime →</a>`;
   setStep(4);
   btn.disabled=false; btn.innerHTML='✓ Submit All Expenses';
 }

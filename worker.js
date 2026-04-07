@@ -192,7 +192,7 @@ export default {
         let offset = 0;
         let allResults = [];
 
-        while (allResults.length < 500) {
+        while (allResults.length < 2000) {
           const searchBody = JSON.stringify({
             wildcardSearch: '',
             offset,
